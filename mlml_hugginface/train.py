@@ -1,0 +1,167 @@
+"""
+train a pytorch model for the masked language modelling task using the transformers library
+"""
+import json
+import random
+from datasets import load_dataset
+from transformers import (
+    AutoModelForMaskedLM,
+    AutoTokenizer,
+    DataCollatorForLanguageModeling,
+    Trainer as HF_Trainer,
+    TrainingArguments as HF_TrainingArguments,
+)
+
+
+class Trainer(object):
+    def __init__(self, config_filepath):
+        self.config = self.load_config(config_filepath)
+        self.dataset = self.load_dataset(self.config['DATASET_NAME'])
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.config['MODEL_CHECKPOINT']
+        )
+        self.model = AutoModelForMaskedLM.from_pretrained(
+            self.config['MODEL_CHECKPOINT']
+        )
+        print(f'>>> tokenizing dataset...')
+        self.tokenized_dataset = self.dataset.map(
+            self.tokenize_function,
+            batched=True,
+            remove_columns=['text', 'label'],
+        )
+        print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
+
+        self.mlm_collator = DataCollatorForLanguageModeling(
+            tokenizer=self.tokenizer,
+            mlm=True,
+            mlm_probability=self.config['MLM_PROBABILITY'],
+            return_tensors='pt',
+        )
+
+        print(f'>>> Collating dataset...')
+        """
+        self.collated_dataset = self.tokenized_dataset.map(
+            lambda dataset: self.mlm_collator(dataset['input_ids']),
+            batched=True,
+            batch_size=1000,
+        )
+        """
+
+    def print_samples(self):
+        tokenized_samples = [
+            random.choice(self.tokenized_dataset['train']['input_ids'])
+            for _ in range(10)
+        ]
+        for idx, sample in enumerate(tokenized_samples):
+            print(
+                f"'>>> Sampled Review {idx} length: {len(sample)}'", flush=True
+            )
+            print(f"'>>> Sampled Review {idx} length: {sample}'")
+
+    def load_config(self, config_filepath):
+        """
+        params:
+            config_filepath: str, e.g. "config.json"
+        sets:
+            config: dict
+        examples:
+            load_config("config.json")
+            >>> {'MODEL_CHECKPOINT': 'bert-base-uncased', 'DATASET_NAME': 'imdb'}
+        """
+        with open(config_filepath) as inpf:
+            config = json.load(inpf)
+            config = {k.upper(): v for k, v in config.items()}
+            return config
+
+    def load_dataset(self, dataset_name):
+        """
+        params:
+            dataset_name: str, e.g. "imdb"
+        sets:
+            dataset: datasets.DatasetDict
+        examples:
+            load_dataset("imdb")
+            >>> DatasetDict({
+                    train: Dataset({
+                        features: ['label', 'text'],
+                        num_rows: 25000
+                    })
+                    test: Dataset({
+                        features: ['label', 'text'],
+                        num_rows: 25000
+                    })
+                })
+        """
+        dataset = load_dataset(dataset_name)
+        sample = dataset['train'].shuffle(seed=42).select(range(3))
+        for row in sample:
+            print(f"\n'>>> Review: {row['text']}'")
+            print(f"'>>> Label: {row['label']}'")
+        return dataset
+
+    def tokenize_function(self, example):
+        """
+        params:
+            examples: dict
+        sets:
+            result: dict
+        examples:
+            tokenize_function({"text": "This is a sentence."})
+            >>> {'attention_mask': [1, 1, 1, 1, 1, 1], 'input_ids': [101, 2023, 2003, 1037, 6251, 1012], 'token_type_ids': [0, 0, 0, 0, 0, 0]}
+        """
+        result = self.tokenizer(
+            example['text'],
+            add_special_tokens=True,
+            return_special_tokens_mask=True,
+            truncation=True,
+        )
+        if self.tokenizer.is_fast:
+            result['word_ids'] = [
+                result.word_ids(i) for i in range(len(result['input_ids']))
+            ]
+
+        return result
+
+    def train(self):
+        """
+        params:
+        sets:
+        examples:
+        """
+        print(f'>>> Training model...')
+        self.config['BATCH_SIZE'] = 
+        # Show the training loss with every epoch
+        logging_steps = len(self.tokenized_dataset['train']) // self.config['BATCH_SIZE']
+        model_name = self.config['MODEL_CHECKPOINT'].split('/')[-1]
+
+        training_args = HF_TrainingArguments(
+            output_dir=f'models/{model_name}-finetuned-imdb',
+            overwrite_output_dir=True,
+            evaluation_strategy='epoch',
+            learning_rate=2e-5,
+            weight_decay=0.01,
+            per_device_train_self.config['BATCH_SIZE']=self.config['BATCH_SIZE'],
+            per_device_eval_self.config['BATCH_SIZE']=self.config['BATCH_SIZE'],
+            push_to_hub=False,
+            fp16=False,
+            logging_steps=logging_steps,
+        )
+
+        hf_trainer = HF_Trainer(
+            model=self.model,
+            args=training_args,
+            train_dataset=self.tokenized_dataset['train'],
+            eval_dataset=self.tokenized_dataset['test'],
+            data_collator=self.mlm_collator,
+            tokenizer=self.tokenizer,
+        )
+        hf_trainer.train()
+
+
+if __name__ == '__main__':
+    import sys
+
+    config_filepath = sys.argv[1]
+    print(config_filepath)
+    trainer = Trainer(config_filepath)
+    trainer.train()

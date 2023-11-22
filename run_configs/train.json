@@ -1,0 +1,7 @@
+{
+	"model_checkpoint": "distilbert-base-uncased",
+	"model_type": "distilbert",
+	"dataset_name": "imdb",
+	"mlm_probability": 0.15,
+	"batch_size": 4
+}

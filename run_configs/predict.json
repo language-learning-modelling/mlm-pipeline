@@ -1,0 +1,4 @@
+{
+	"model_checkpoint": "distilbert-base-uncased",
+	"text": "This is a great [MASK]."
+}
