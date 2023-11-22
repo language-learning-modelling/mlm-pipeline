@@ -9,7 +9,7 @@ packages = [{include = "mlml_hugginface"}]
 [tool.poetry.dependencies]
 python = "^3"
 transformers = "^4.35.2"
-torch = "^2.1.1"
+torch = "^2.1"
 datasets = "^2.15.0"
 typer = "^0.9.0"
 accelerate = "^0.24.1"
