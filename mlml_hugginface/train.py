@@ -129,9 +129,10 @@ class Trainer(object):
         examples:
         """
         print(f'>>> Training model...')
-        self.config['BATCH_SIZE'] = 
         # Show the training loss with every epoch
-        logging_steps = len(self.tokenized_dataset['train']) // self.config['BATCH_SIZE']
+        logging_steps = (
+            len(self.tokenized_dataset['train']) // self.config['BATCH_SIZE']
+        )
         model_name = self.config['MODEL_CHECKPOINT'].split('/')[-1]
 
         training_args = HF_TrainingArguments(
@@ -140,8 +141,8 @@ class Trainer(object):
             evaluation_strategy='epoch',
             learning_rate=2e-5,
             weight_decay=0.01,
-            per_device_train_self.config['BATCH_SIZE']=self.config['BATCH_SIZE'],
-            per_device_eval_self.config['BATCH_SIZE']=self.config['BATCH_SIZE'],
+            per_device_train_batch_size=self.config['BATCH_SIZE'],
+            per_device_eval_batch_size=self.config['BATCH_SIZE'],
             push_to_hub=False,
             fp16=False,
             logging_steps=logging_steps,
