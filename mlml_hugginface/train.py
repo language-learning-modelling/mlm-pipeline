@@ -131,8 +131,8 @@ class Trainer(object):
         examples:
         """
         if torch.cuda.is_available():
-            torch.cuda.set_device(1)
-            torch.cuda.current_device()
+            torch.cuda.set_device(0)
+            # torch.cuda.current_device()
         print(f'>>> Training model...')
         # Show the training loss with every epoch
         logging_steps = (
