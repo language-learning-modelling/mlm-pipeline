@@ -3,14 +3,16 @@ train a pytorch model for the masked language modelling task using the transform
 """
 import json
 import random
+
+import torch
 from datasets import load_dataset
 from transformers import (
     AutoModelForMaskedLM,
     AutoTokenizer,
     DataCollatorForLanguageModeling,
-    Trainer as HF_Trainer,
-    TrainingArguments as HF_TrainingArguments,
 )
+from transformers import Trainer as HF_Trainer
+from transformers import TrainingArguments as HF_TrainingArguments
 
 
 class Trainer(object):
@@ -128,6 +130,9 @@ class Trainer(object):
         sets:
         examples:
         """
+        if torch.cuda.is_available():
+            torch.cuda.set_device(1)
+            torch.cuda.current_device()
         print(f'>>> Training model...')
         # Show the training loss with every epoch
         logging_steps = (
