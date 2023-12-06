@@ -1,6 +1,6 @@
 {
-	"model_checkpoint": "distilbert-base-uncased",
-	"model_type": "distilbert",
+	"model_checkpoint": "./models/new-model-27",
+	"model_type": "bert-base-uncased",
 	"dataset_name": "./data/EFCAMDAT_2_thomas_sentences_gt5.txt",
 	"mlm_probability": 0.15,
 	"batch_size": 4

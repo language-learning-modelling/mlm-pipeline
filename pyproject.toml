@@ -21,9 +21,11 @@ isort = "^5.12.0"
 taskipy = "^1.12.0"
 
 [tool.taskipy.tasks]
+bluec = "blue --check --diff ./mlml_hugginface/change.py"
 bluet = "blue --check --diff ./mlml_hugginface/train.py"
 bluep = "blue --check --diff ./mlml_hugginface/predict.py"
 isort = "isort --check-only --diff --recursive ./mlml_hugginface/train.py"
+generate = "task bluec && python ./mlml_hugginface/CLI.py generate run_configs/generate.json"
 train = "task bluet && python ./mlml_hugginface/CLI.py train run_configs/train.json"
 predict = "task bluep && python ./mlml_hugginface/CLI.py predict run_configs/predict.json"
 

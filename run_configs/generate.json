@@ -1,6 +1,5 @@
 {
-	"model_checkpoint": "distilbert-base-uncased",
-	"model_type": "distilbert",
+	"model_name": "distilbert",
 	"dataset_name": "./data/EFCAMDAT_2_thomas_sentences_gt5.txt",
 	"mlm_probability": 0.15,
 	"batch_size": 4

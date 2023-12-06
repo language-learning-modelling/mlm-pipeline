@@ -3,9 +3,11 @@ train a pytorch model for the masked language modelling task using the transform
 """
 import json
 import random
+import os
 
 import torch
-from datasets import load_dataset
+from datasets import load_dataset as hf_load_dataset
+from datasets import load_dataset, Dataset as HF_Dataset
 from transformers import (
     AutoModelForMaskedLM,
     AutoTokenizer,
@@ -22,14 +24,13 @@ class Trainer(object):
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.config['MODEL_CHECKPOINT']
         )
-        self.model = AutoModelForMaskedLM.from_pretrained(
-            self.config['MODEL_CHECKPOINT']
-        )
+        self.model = self.load_model()
+
         print(f'>>> tokenizing dataset...')
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
-            remove_columns=['text', 'label'],
+            remove_columns=['text'],
         )
         print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
 
@@ -48,6 +49,17 @@ class Trainer(object):
             batch_size=1000,
         )
         """
+
+    def load_model(self):
+        model = AutoModelForMaskedLM.from_pretrained(
+            self.config['MODEL_CHECKPOINT']
+            if os.path.isfile(self.config['MODEL_CHECKPOINT'])
+            else f"models/{self.config['MODEL_CHECKPOINT'].split('/')[-1]}"
+        )
+        model.save_pretrained(
+            f"models/local-{self.config['MODEL_CHECKPOINT'].split('/')[-1]}"
+        )
+        return model
 
     def print_samples(self):
         tokenized_samples = [
@@ -94,11 +106,24 @@ class Trainer(object):
                     })
                 })
         """
-        dataset = load_dataset(dataset_name)
+        if os.path.isfile(dataset_name):
+            # assuming is a .txt file
+            # where each line is a unmasked sentence
+            with open(dataset_name, encoding='utf-8') as inpf:
+                texts = [
+                    sent.replace('\n', '')
+                    for sent in open(dataset_name, encoding='utf-8')
+                ]
+                my_dict = {'text': texts}
+                dataset = HF_Dataset.from_dict(my_dict)
+                dataset = dataset.train_test_split(
+                    test_size=0.1, shuffle=True, seed=200
+                )
+        else:
+            dataset = hf_load_dataset(dataset_name)
         sample = dataset['train'].shuffle(seed=42).select(range(3))
         for row in sample:
             print(f"\n'>>> Review: {row['text']}'")
-            print(f"'>>> Label: {row['label']}'")
         return dataset
 
     def tokenize_function(self, example):
