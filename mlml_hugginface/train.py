@@ -4,6 +4,7 @@ train a pytorch model for the masked language modelling task using the transform
 import json
 import random
 import os
+import time
 
 import torch
 from datasets import load_dataset as hf_load_dataset
@@ -158,15 +159,18 @@ class Trainer(object):
         if torch.cuda.is_available():
             torch.cuda.set_device(0)
             # torch.cuda.current_device()
+        print(torch.cuda.current_device())
+        time.sleep(5)
         print(f'>>> Training model...')
         # Show the training loss with every epoch
         logging_steps = (
             len(self.tokenized_dataset['train']) // self.config['BATCH_SIZE']
         )
         model_name = self.config['MODEL_CHECKPOINT'].split('/')[-1]
+        dataset_name = self.config['DATASET_NAME']
 
         training_args = HF_TrainingArguments(
-            output_dir=f'models/{model_name}-finetuned-imdb',
+            output_dir=f'models/{model_name}-finetuned-{dataset_name}',
             overwrite_output_dir=True,
             evaluation_strategy='epoch',
             learning_rate=2e-5,
