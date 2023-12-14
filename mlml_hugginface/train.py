@@ -31,7 +31,7 @@ class Trainer(object):
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
-            remove_columns=['text','label'],
+            remove_columns=['text'],#,'label'],
         )
         print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
 
