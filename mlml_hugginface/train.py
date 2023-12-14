@@ -54,7 +54,7 @@ class Trainer(object):
     def load_model(self):
         model = AutoModelForMaskedLM.from_pretrained(
             self.config['MODEL_CHECKPOINT']
-            if os.path.isfolder(self.config['MODEL_CHECKPOINT'])
+            if os.path.isdir(self.config['MODEL_CHECKPOINT'])
             else f"models/{self.config['MODEL_CHECKPOINT'].split('/')[-1]}"
         )
         model.save_pretrained(
