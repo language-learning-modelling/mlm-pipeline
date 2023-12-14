@@ -31,7 +31,7 @@ class Trainer(object):
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
-            remove_columns=['text'],
+            remove_columns=['text','label'],
         )
         print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
 
@@ -54,7 +54,7 @@ class Trainer(object):
     def load_model(self):
         model = AutoModelForMaskedLM.from_pretrained(
             self.config['MODEL_CHECKPOINT']
-            if os.path.isfile(self.config['MODEL_CHECKPOINT'])
+            if os.path.isfolder(self.config['MODEL_CHECKPOINT'])
             else f"models/{self.config['MODEL_CHECKPOINT'].split('/')[-1]}"
         )
         model.save_pretrained(
