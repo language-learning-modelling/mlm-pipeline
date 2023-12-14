@@ -124,7 +124,7 @@ class Trainer(object):
             dataset = hf_load_dataset(dataset_name)
         sample = dataset['train'].shuffle(seed=42).select(range(3))
         for row in sample:
-            print(f"\n'>>> Review: {row['text']}'")
+            print(f"\n'>>> {row['text']}'")
         return dataset
 
     def tokenize_function(self, example):
