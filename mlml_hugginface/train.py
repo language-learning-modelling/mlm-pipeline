@@ -4,6 +4,7 @@ train a pytorch model for the masked language modelling task using the transform
 import json
 import random
 import os
+import time
 
 import torch
 from datasets import load_dataset as hf_load_dataset
@@ -30,7 +31,7 @@ class Trainer(object):
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
-            remove_columns=['text'],
+            remove_columns=['text'],#,'label'],
         )
         print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
 
@@ -53,7 +54,7 @@ class Trainer(object):
     def load_model(self):
         model = AutoModelForMaskedLM.from_pretrained(
             self.config['MODEL_CHECKPOINT']
-            if os.path.isfile(self.config['MODEL_CHECKPOINT'])
+            if os.path.isdir(self.config['MODEL_CHECKPOINT'])
             else f"models/{self.config['MODEL_CHECKPOINT'].split('/')[-1]}"
         )
         model.save_pretrained(
@@ -124,7 +125,7 @@ class Trainer(object):
             dataset = hf_load_dataset(dataset_name)
         sample = dataset['train'].shuffle(seed=42).select(range(3))
         for row in sample:
-            print(f"\n'>>> Review: {row['text']}'")
+            print(f"\n'>>> {row['text']}'")
         return dataset
 
     def tokenize_function(self, example):
@@ -159,15 +160,18 @@ class Trainer(object):
         if torch.cuda.is_available():
             torch.cuda.set_device(0)
             # torch.cuda.current_device()
+        print(torch.cuda.current_device())
+        time.sleep(5)
         print(f'>>> Training model...')
         # Show the training loss with every epoch
         logging_steps = (
             len(self.tokenized_dataset['train']) // self.config['BATCH_SIZE']
         )
         model_name = self.config['MODEL_CHECKPOINT'].split('/')[-1]
+        dataset_name = self.config['DATASET_NAME']
 
         training_args = HF_TrainingArguments(
-            output_dir=f'models/{model_name}-finetuned-imdb',
+            output_dir=f'models/{model_name}-finetuned-{dataset_name}',
             overwrite_output_dir=True,
             evaluation_strategy='epoch',
             learning_rate=2e-5,
