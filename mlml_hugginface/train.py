@@ -7,7 +7,7 @@ import os
 
 import torch
 from datasets import load_dataset as hf_load_dataset
-from datasets import load_dataset, Dataset as HF_Dataset
+from datasets import Dataset as HF_Dataset
 from transformers import (
     AutoModelForMaskedLM,
     AutoTokenizer,
@@ -106,6 +106,7 @@ class Trainer(object):
                     })
                 })
         """
+        input('testing change in code')
         if os.path.isfile(dataset_name):
             # assuming is a .txt file
             # where each line is a unmasked sentence
