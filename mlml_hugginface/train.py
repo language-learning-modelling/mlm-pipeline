@@ -169,9 +169,10 @@ class Trainer(object):
         )
         model_name = self.config['MODEL_CHECKPOINT'].split('/')[-1]
         dataset_name = self.config['DATASET_NAME']
+        finetunedModel_outputDir_fp=f'models/{model_name}-finetuned-{dataset_name}'
 
         training_args = HF_TrainingArguments(
-            output_dir=f'models/{model_name}-finetuned-{dataset_name}',
+            output_dir=finetunedModel_outputDir_fp,
             overwrite_output_dir=True,
             evaluation_strategy='epoch',
             learning_rate=2e-5,
@@ -196,7 +197,6 @@ class Trainer(object):
 
 if __name__ == '__main__':
     import sys
-
     config_filepath = sys.argv[1]
     print(config_filepath)
     trainer = Trainer(config_filepath)

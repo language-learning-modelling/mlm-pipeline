@@ -30,7 +30,6 @@ def train(cfgf: str):
 def predict(cfgf: str):
     from predict import Predictor
 
-    print(cfgf)
     predictor = Predictor(cfgf)
     predictor.predict()
 

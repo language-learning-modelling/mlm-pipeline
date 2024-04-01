@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "mlml_hugginface"}]
 
 [tool.poetry.dependencies]
-python = "^3"
+python = ">=3.9,<4"
 transformers = "^4.35.2"
 torch = "^2.1"
 datasets = "^2.15.0"

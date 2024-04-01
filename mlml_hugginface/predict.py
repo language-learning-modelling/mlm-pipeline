@@ -2,7 +2,6 @@ import json
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 import torch
 
-
 class Predictor(object):
     def __init__(self, config_filepath):
         self.config = self.load_config(config_filepath)
@@ -46,7 +45,6 @@ class Predictor(object):
 
 if __name__ == '__main__':
     import sys
-
     config_filepath = sys.argv[1]
     print(config_filepath)
     predictor = Predictor(config_filepath)
