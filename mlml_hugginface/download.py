@@ -17,11 +17,14 @@ class Downloader:
              
     def downloadLocally(self):
         base_outputDir = Path(f'./models/{self.downloadConfig.MODEL_CHECKPOINT}') 
+        model_outputDir = Path(base_outputDir / 'model') 
+        tokenizer_outputDir = Path(base_outputDir / 'tokenizer') 
         if base_outputDir.exists() and base_outputDir.is_dir():
             return 
         else:
-            model_outputDir = Path(base_outputDir / 'model') 
-            tokenizer_outputDir = Path(base_outputDir / 'tokenizer') 
+            base_outputDir.mkdir(parents=True,exist_ok=True)
+            model_outputDir.mkdir(parents=True,exist_ok=True) 
+            tokenizer_outputDir.mkdir(parents=True,exist_ok=True) 
 
         model = AutoModelForMaskedLM.from_pretrained(
             self.downloadConfig.MODEL_CHECKPOINT

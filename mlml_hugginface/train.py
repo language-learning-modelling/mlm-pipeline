@@ -18,20 +18,33 @@ from transformers import Trainer as HF_Trainer
 from transformers import TrainingArguments as HF_TrainingArguments
 
 
-class Trainer(object):
+class Trainer():
     def __init__(self, config_filepath):
         self.config = self.load_config(config_filepath)
         self.dataset = self.load_dataset(self.config['DATASET_NAME'])
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.config['MODEL_CHECKPOINT']
-        )
-        self.model = self.load_model()
+        self.dataset_name = self.dataset_name()
+        print(self.dataset_name)
+        self.initial_model_name = self.get_initial_model_name_from_checkpoint()
+        is_hf_checkpoint_given = self.config.get('HF_CHECKPOINT',False)
+        if is_hf_checkpoint_given:
+            self.model_folderpath = self.config['HF_CHECKPOINT'] 
+            self.tokenizer_folderpath = self.config['HF_CHECKPOINT'] 
+        else:
+            self.expected_checkpoint_folder = f"./models/{self.initial_model_name}"
+            self.expected_model_folder = f"{self.expected_checkpoint_folder}/model/"
+            self.expected_tokenizer_folder = f"{self.expected_checkpoint_folder}/tokenizer/"
+            self.model_folderpath = self.expected_model_folder  
+            self.tokenizer_folderpath = self.expected_tokenizer_folder  
+            
+        print(self.config)
+        self.tokenizer = self.load_tokenizer(folderpath=self.tokenizer_folderpath)
+        self.model = self.load_model(folderpath=self.model_folderpath)
 
         print(f'>>> tokenizing dataset...')
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
-            remove_columns=['text'],#,'label'],
+            remove_columns= list(self.dataset['train'][0])
         )
         print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
 
@@ -51,14 +64,45 @@ class Trainer(object):
         )
         """
 
-    def load_model(self):
-        model = AutoModelForMaskedLM.from_pretrained(
-            self.config['MODEL_CHECKPOINT']
-            if os.path.isdir(self.config['MODEL_CHECKPOINT'])
-            else f"models/{self.config['MODEL_CHECKPOINT'].split('/')[-1]}"
+    def dataset_name(self):
+        if '/' in self.config['DATASET_NAME']:
+            is_filepath = True
+        if is_filepath:
+            last_char_is_slash = self.config['DATASET_NAME'][-1] == '/'
+            if not last_char_is_slash:
+                dataset_name = self.config['DATASET_NAME'].split('/')[-1]
+            else:
+                dataset_name = self.config['DATASET_NAME'].split('/')[-2]
+        else:
+            dataset_name = self.config['DATASET_NAME'] 
+        return dataset_name 
+
+    def get_initial_model_name_from_checkpoint(self):
+        '''
+            A model check point can either be a folderpath or a model checkpoint name
+        '''
+        if '/' in self.config['MODEL_CHECKPOINT']:
+            is_filepath = True
+        if is_filepath:
+            last_char_is_slash = self.config['MODEL_CHECKPOINT'][-1] == '/'
+            if not last_char_is_slash:
+                initial_model_name = self.config['MODEL_CHECKPOINT'].split('/')[-1]
+            else:
+                initial_model_name = self.config['MODEL_CHECKPOINT'].split('/')[-2]
+        else:
+            initial_model_name = self.config['MODEL_CHECKPOINT']
+        return initial_model_name 
+
+    def load_tokenizer(self, folderpath):
+        print(folderpath);input()
+        tokenizer = AutoTokenizer.from_pretrained(
+            folderpath, local_files_only=True
         )
-        model.save_pretrained(
-            f"models/local-{self.config['MODEL_CHECKPOINT'].split('/')[-1]}"
+        return tokenizer
+
+    def load_model(self, folderpath):
+        model = AutoModelForMaskedLM.from_pretrained(
+            folderpath, local_files_only=True
         )
         return model
 
@@ -107,7 +151,8 @@ class Trainer(object):
                     })
                 })
         """
-        input('testing change in code')
+        print(dataset_name)
+        input()
         if os.path.isfile(dataset_name):
             # assuming is a .txt file
             # where each line is a unmasked sentence
@@ -168,20 +213,29 @@ class Trainer(object):
             len(self.tokenized_dataset['train']) // self.config['BATCH_SIZE']
         )
         model_name = self.config['MODEL_CHECKPOINT'].split('/')[-1]
-        dataset_name = self.config['DATASET_NAME']
-        finetunedModel_outputDir_fp=f'models/{model_name}-finetuned-{dataset_name}'
-
+        dataset_name = self.dataset_name
+        finetunedModel_outputDir_fp=f'./models/{model_name}-finetuned-{dataset_name}'
+        checkpoints_folderpath =f'{finetunedModel_outputDir_fp}/checkpoints' 
+        # logging_dir=f'{finetunedModel_outputDir_fp}/logs'
         training_args = HF_TrainingArguments(
             output_dir=finetunedModel_outputDir_fp,
+            # logging_dir="./logs/",#logging_dir,
+            num_train_epochs= 10,
             overwrite_output_dir=True,
+            logging_strategy='epoch',
             evaluation_strategy='epoch',
-            learning_rate=2e-5,
+            save_strategy='epoch',
+            learning_rate=5e-5,
             weight_decay=0.01,
             per_device_train_batch_size=self.config['BATCH_SIZE'],
             per_device_eval_batch_size=self.config['BATCH_SIZE'],
             push_to_hub=False,
             fp16=False,
-            logging_steps=logging_steps,
+            # logging_steps=logging_steps,
+            # save_steps=500,
+            resume_from_checkpoint = True,
+            save_total_limit=3,
+            load_best_model_at_end=True
         )
 
         hf_trainer = HF_Trainer(
