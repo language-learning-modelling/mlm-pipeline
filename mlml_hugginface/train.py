@@ -23,9 +23,9 @@ class Trainer():
         self.config = self.load_config(config_filepath)
         self.dataset = self.load_dataset(self.config['DATASET_NAME'])
         self.dataset_name = self.dataset_name()
-        print(self.dataset_name)
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
         is_hf_checkpoint_given = self.config.get('HF_CHECKPOINT',False)
+        self.save_data_splits()
         if is_hf_checkpoint_given:
             self.model_folderpath = self.config['HF_CHECKPOINT'] 
             self.tokenizer_folderpath = self.config['HF_CHECKPOINT'] 
@@ -35,6 +35,7 @@ class Trainer():
             self.expected_tokenizer_folder = f"{self.expected_checkpoint_folder}/tokenizer/"
             self.model_folderpath = self.expected_model_folder  
             self.tokenizer_folderpath = self.expected_tokenizer_folder  
+
             
         print(self.config)
         self.tokenizer = self.load_tokenizer(folderpath=self.tokenizer_folderpath)
@@ -63,6 +64,16 @@ class Trainer():
             batch_size=1000,
         )
         """
+
+    def save_data_splits(self):
+        train_fp = f"./train_{self.dataset_name}"
+        test_fp = f"./test_{self.dataset_name}"
+        with open(train_fp,"w") as outf:
+            for e in self.dataset['train']:
+                outf.write(e['text']+'\n')
+        with open(test_fp,"w") as outf:
+            for e in self.dataset['test']:
+                outf.write(e['text']+'\n')
 
     def dataset_name(self):
         if '/' in self.config['DATASET_NAME']:
