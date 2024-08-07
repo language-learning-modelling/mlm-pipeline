@@ -17,6 +17,9 @@ from transformers import (
 from transformers import Trainer as HF_Trainer
 from transformers import TrainingArguments as HF_TrainingArguments
 
+from peft import LoraConfig, get_peft_model
+import bitsandbytes as bnb
+
 
 class Trainer():
     def __init__(self, config_filepath):
@@ -40,6 +43,7 @@ class Trainer():
         print(self.config)
         self.tokenizer = self.load_tokenizer(folderpath=self.tokenizer_folderpath)
         self.model = self.load_model(folderpath=self.model_folderpath)
+        self.model = self.get_lora_model(self.model)
 
         print(f'>>> tokenizing dataset...')
         self.tokenized_dataset = self.dataset.map(
@@ -206,6 +210,45 @@ class Trainer():
             ]
 
         return result
+
+    def get_lora_model(self, model):
+        """
+        Replace the original model with a Lora model.
+
+        :param model: PEFT model
+        :param lora_module_names: List of module names to apply LoRA to
+        """
+        modules = self.find_all_linear_names(model)
+        lora_config = LoraConfig(
+            r=64,
+            lora_alpha=128,
+            target_modules=modules,
+            bias="all",
+            lora_dropout=0.05,
+            task_type="CAUSAL_LM",
+        )
+        model = get_peft_model(model, lora_config)
+        return model
+
+    def find_all_linear_names(self, model):
+        """
+        Find modules to apply LoRA to.
+
+        :param model: PEFT model
+        """
+
+        # bnb.nn.Linear4bit
+        cls = torch.nn.modules.linear.Linear
+        lora_module_names = set()
+        for name, module in self.model.named_modules():
+            if isinstance(module, cls):
+                names = name.split('.')
+                lora_module_names.add(names[0] if len(names) == 1 else names[-1])
+
+        if 'lm_head' in lora_module_names:
+            lora_module_names.remove('lm_head')
+        print(f"LoRA module names: {list(lora_module_names)}")
+        return list(lora_module_names)
 
     def train(self):
         """
