@@ -12,10 +12,7 @@ class Predictor(object):
     '''
     def __init__(self, config_obj=None):
         self.config = config_obj
-        self.masked_sent_tpl_lst_per_text = self.load_texts() 
-        self.n_msk_sents = sum([len(l) for l in self.masked_sent_tpl_lst_per_text]) 
-        print(f"processing a total of {len(self.masked_sent_tpl_lst_per_text)} texts and {self.n_msk_sents} masked sentences")
-
+        self.big_count = 0
         self.use_cuda = torch.cuda.is_available()
         self.device = torch.device("cuda" if self.use_cuda else "cpu")
         self.model = AutoModelForMaskedLM.from_pretrained(
@@ -26,6 +23,10 @@ class Predictor(object):
             self.config.MODEL_CHECKPOINT
         )
         self.vocab_size = len(self.tokenizer.vocab)
+
+        self.masked_sent_tpl_lst_per_text = self.load_texts() 
+        self.n_msk_sents = sum([len(l) for l in self.masked_sent_tpl_lst_per_text]) 
+        print(f"processing a total of {len(self.masked_sent_tpl_lst_per_text)} texts and {self.n_msk_sents} masked sentences")
         self.top_k = self.config.TOP_K \
                      if self.config.TOP_K != "vocab"\
                      else self.vocab_size 
@@ -35,50 +36,72 @@ class Predictor(object):
         )
 
 
-    def mlm_tpl(self,text_id, d):
+    def generate_masked_sentences(self, text_dict):
+        masked_sentences = []
+        tokens = [d['token']['token_str'] for d in text_dict["tokens"]]
+        for token_idx, _ in enumerate(tokens):
+            masked_token_sentence = tokens.copy()
+            masked_token_sentence[token_idx] = self.tokenizer.mask_token  
+            masked_sentences.append(
+                    {
+                        "idx":f"{text_dict['text_id']}_{token_idx}",
+                        "text":" ".join(masked_token_sentence)
+                    }
+            )
+        return masked_sentences
+
+    def mlm_tpl(self,text_id, d, msk_sent_str):
         data = (
             (self.config.INPUT_FP,
             str(text_id),
             str(d['predictions']['maskedTokenIdx'])),
-            d['predictions']['maskedSentence']['maskedSentenceStr']
+            msk_sent_str
             )
         return data
 
     def load_texts(self):
-        return [[self.mlm_tpl(text_dict['text_id'], token_dict) 
-                    for token_dict in text_dict["tokens"]]
-                for text_dict in self.config.TEXTS.values()
-                    
-                ] 
+        texts=[]
+        for text_dict in self.config.TEXTS.values():
+            text_mlms=[]
+            for token_dict, masked_sentence_dict\
+                    in zip(
+                            text_dict["tokens"],
+                            self.generate_masked_sentences(text_dict)
+                            ):
+                        if not self.check_if_skip_text(text_dict):
+                            text_mlms.append(self.mlm_tpl(
+                                text_dict['text_id'],
+                                token_dict,
+                                masked_sentence_dict['text']
+                            )) 
+            texts.append(text_mlms)
+        return texts
         #raise Exception('Could not load texts')
 
-    def check_if_skip_text(self, current_text):
-        n_mlms = len(current_text)
-        s=time.time()
-        llm_tokens_first_msk_sent = self.tokenizer(
-               current_text[0][1],
-               padding=True,
-               return_tensors='pt'
-        )
-        n_tokens = llm_tokens_first_msk_sent["input_ids"].size()[1]
-        if n_tokens + 2 >= self.tokenizer.model_max_length:
+    def increment_big_count(v):
+        self.big_count+=1
+        print(f"*"*100)
+        print(f'{self.big_count} big sentences')
+        print(f"*"*100)
+        return v
+
+    def check_if_skip_text(self, text_dict):
+        if text_dict[f"{self.config.MODEL_NAME}_is_processed"] == True:
             skip_text = True
-            self.big_count+=1
-            print(f"*"*100)
-            print(f'{self.big_count} big sentences, this one has: {n_tokens} tokens')
-            print(f"*"*100)
         else:
-            skip_text = False
+            llm_tokens_first_msk_sent = self.tokenizer(
+                   text_dict['text'],
+                   padding=True,
+                   return_tensors='pt'
+            )
+            n_tokens = llm_tokens_first_msk_sent["input_ids"].size()[1]
+            skip_text = increment_big_count(True) if n_tokens > self.tokenizer.model_max_length else False
         return skip_text
 
     def batch(self):
         batch=[]
-        self.big_count = 0
         while len(self.masked_sent_tpl_lst_per_text) > 0:
             masked_sent_tpl_lst = self.masked_sent_tpl_lst_per_text.pop()
-            if self.check_if_skip_text(masked_sent_tpl_lst):
-                continue
-
             while len(masked_sent_tpl_lst) > 0:
                 masked_sent_tpl = masked_sent_tpl_lst.pop()
                 batch.append(masked_sent_tpl)
