@@ -179,3 +179,4 @@ pyrightconfig.json
 
 data
 models/
+mlml_hugginface/model-classes/transformers
