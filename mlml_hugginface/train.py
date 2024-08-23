@@ -28,6 +28,7 @@ class Trainer():
         self.dataset_name = self.dataset_name()
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
         is_hf_checkpoint_given = self.config.get('HF_CHECKPOINT',False)
+        is_to_apply_lora = self.config.get('LORA',False) 
         self.save_data_splits()
         if is_hf_checkpoint_given:
             self.model_folderpath = self.config['HF_CHECKPOINT'] 
@@ -43,7 +44,8 @@ class Trainer():
         print(self.config)
         self.tokenizer = self.load_tokenizer(folderpath=self.tokenizer_folderpath)
         self.model = self.load_model(folderpath=self.model_folderpath)
-        self.model = self.get_lora_model(self.model)
+        if is_to_apply_lora:
+            self.model = self.get_lora_model(self.model)
 
         print(f'>>> tokenizing dataset...')
         self.tokenized_dataset = self.dataset.map(
@@ -109,7 +111,7 @@ class Trainer():
         return initial_model_name 
 
     def load_tokenizer(self, folderpath):
-        print(folderpath);input()
+        print(folderpath)
         tokenizer = AutoTokenizer.from_pretrained(
             folderpath, local_files_only=True
         )
@@ -167,7 +169,6 @@ class Trainer():
                 })
         """
         print(dataset_name)
-        input()
         if os.path.isfile(dataset_name):
             # assuming is a .txt file
             # where each line is a unmasked sentence
