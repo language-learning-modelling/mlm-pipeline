@@ -180,3 +180,5 @@ pyrightconfig.json
 data
 models/
 mlml_hugginface/model-classes/transformers
+mlml_hugginface/bert-hf-model
+.vim
