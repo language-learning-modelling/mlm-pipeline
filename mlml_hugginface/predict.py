@@ -1,5 +1,5 @@
 import json
-from transformers import AutoModelForMaskedLM, AutoTokenizer
+from transformers import AutoModelForMaskedLM, AutoTokenizer, BertConfig
 import torch
 from torch.nn.functional import softmax
 import time
@@ -16,11 +16,11 @@ class Predictor(object):
         self.use_cuda = torch.cuda.is_available()
         self.device = torch.device("cuda" if self.use_cuda else "cpu")
         self.model = AutoModelForMaskedLM.from_pretrained(
-            self.config.MODEL_CHECKPOINT
+         self.config.MODEL_CHECKPOINT
         )
         self.model.to(self.device)
         self.tokenizer = AutoTokenizer.from_pretrained(
-            self.config.MODEL_CHECKPOINT
+         self.config.MODEL_CHECKPOINT
         )
         self.vocab_size = len(self.tokenizer.vocab)
 
@@ -63,39 +63,38 @@ class Predictor(object):
         texts=[]
         for text_dict in self.config.TEXTS.values():
             text_mlms=[]
+            if self.check_if_skip_text(text_dict):
+                continue
             for token_dict, masked_sentence_dict\
                     in zip(
                             text_dict["tokens"],
                             self.generate_masked_sentences(text_dict)
                             ):
-                        if not self.check_if_skip_text(text_dict):
-                            text_mlms.append(self.mlm_tpl(
-                                text_dict['text_id'],
-                                token_dict,
-                                masked_sentence_dict['text']
-                            )) 
+                        text_mlms.append(self.mlm_tpl(
+                            text_dict['text_id'],
+                            token_dict,
+                            masked_sentence_dict['text']
+                        )) 
             texts.append(text_mlms)
         return texts
         #raise Exception('Could not load texts')
 
-    def increment_big_count(v):
-        self.big_count+=1
+    def increment_big_count(self, v, n_tokens):
+        self.big_count+=n_tokens
         print(f"*"*100)
-        print(f'{self.big_count} big sentences')
+        print(f'{self.big_count} masked tokens were skipped')
         print(f"*"*100)
         return v
 
     def check_if_skip_text(self, text_dict):
-        if text_dict[f"{self.config.MODEL_NAME}_is_processed"] == True:
-            skip_text = True
-        else:
-            llm_tokens_first_msk_sent = self.tokenizer(
-                   text_dict['text'],
-                   padding=True,
-                   return_tensors='pt'
-            )
-            n_tokens = llm_tokens_first_msk_sent["input_ids"].size()[1]
-            skip_text = increment_big_count(True) if n_tokens > self.tokenizer.model_max_length else False
+        llm_tokens_first_msk_sent = self.tokenizer(
+                text_dict['text'],
+                padding=True,
+                return_tensors='pt'
+        )
+        n_tokens = llm_tokens_first_msk_sent["input_ids"].size()[1]
+        # print(n_tokens, self.tokenizer.model_max_length);input()
+        skip_text = self.increment_big_count(True, n_tokens) if n_tokens > self.tokenizer.model_max_length else False
         return skip_text
 
     def batch(self):
@@ -122,7 +121,11 @@ class Predictor(object):
                                    return_tensors='pt')
 
                 inputs.to(self.device)
-                token_logits = self.model(**inputs).logits
+                try:
+                    token_logits = self.model(**inputs).logits
+                except:
+                    print(f"{batch_texts_ids}",file=open("error_pred.txt","a"))
+                    continue
                 # Find the location of [MASK] and extract its logits
                 mask_token_index = torch.where(
                     inputs['input_ids'] == self.tokenizer.mask_token_id
