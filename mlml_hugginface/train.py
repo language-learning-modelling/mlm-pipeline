@@ -63,7 +63,7 @@ class Trainer:
     def __init__(self, config: TrainerConfig):
         self.config = config
         self.dataset_name = self.dataset_name()
-        self.dataset = self.load_dataset(self.config.DATASET_NAME)
+        self.dataset = self.load_dataset(self.config.DATASET_NAME, self.config)
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
 
         # self.save_data_splits()
@@ -137,7 +137,7 @@ class Trainer:
         )
         return model
 
-    def load_dataset(self, dataset_name):
+    def load_dataset(self, dataset_name, training_strategy):
         expected_local_datasets_names_text_column = {
                 "efcamdat": "text", 
                 "EFCAMDAT": "text", 
@@ -165,6 +165,9 @@ class Trainer:
             # then find the latest processed batch and load onwards getting "text" field
             # if training_strategy is "FULL+HUMAN-TOKENIZE" 
             # then load each batch json and get "tokens" which is an array of token objects
+            if training_strategy == TrainingStrategy.FULL_LLM_TOKENIZE:
+                print("then load each batch json and get the text field")
+
         else:
             dataset = hf_load_dataset(dataset_name)
         sample = dataset['train'].shuffle(seed=42).select(range(3))
