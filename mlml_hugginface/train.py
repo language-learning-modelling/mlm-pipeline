@@ -2,7 +2,8 @@ import json
 import random
 import os
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 
 import torch
 from datasets import load_dataset as hf_load_dataset
@@ -19,6 +20,19 @@ from peft import LoraConfig, get_peft_model
 import bitsandbytes as bnb
 
 
+from dataclasses import dataclass, field
+from enum import Enum
+
+# Define the enum for training strategies
+class TrainingStrategy(Enum):
+    FULL_LLM_TOKENIZE = "FULL+LLM-TOKENIZE"
+    RESUME_LLM_TOKENIZE = "RESUME+LLM-TOKENIZE"
+    FULL_HUMAN_TOKENIZE = "FULL+HUMAN-TOKENIZE"
+
+# Reverse mapping from string to enum
+# Automatically generate reverse mapping from the enum values
+TRAINING_STRATEGY_MAP = {strategy.value: strategy for strategy in TrainingStrategy}
+
 @dataclass
 class TrainerConfig:
     MODEL_CHECKPOINT: str
@@ -27,19 +41,29 @@ class TrainerConfig:
     LORA: bool = False
     MLM_PROBABILITY: float = 0.15
     BATCH_SIZE: int = 16
+    # Allow training_strategy as a string input, which will be converted to enum
+    training_strategy: str = field(default="FULL+LLM-TOKENIZE")
 
     def __post_init__(self):
         required_fields = ["MODEL_CHECKPOINT", "DATASET_NAME"]
         for field_key in self.__dataclass_fields__.keys():
             if field_key in required_fields and self.__getattribute__(field_key) is None:
-             raise ValueError(f'missing {field_key} config property')
+                raise ValueError(f'missing {field_key} config property')
+
+        # Convert the string training_strategy to enum if it's a valid string
+        if isinstance(self.training_strategy, str):
+            if self.training_strategy not in TRAINING_STRATEGY_MAP:
+                raise ValueError(f'Invalid training strategy: {self.training_strategy}')
+            self.training_strategy = TRAINING_STRATEGY_MAP[self.training_strategy]
+        elif not isinstance(self.training_strategy, TrainingStrategy):
+            raise ValueError(f'Invalid training strategy type: {self.training_strategy}')
 
 
 class Trainer:
     def __init__(self, config: TrainerConfig):
         self.config = config
-        self.dataset = self.load_dataset(self.config.DATASET_NAME)
         self.dataset_name = self.dataset_name()
+        self.dataset = self.load_dataset(self.config.DATASET_NAME)
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
 
         # self.save_data_splits()
@@ -114,7 +138,12 @@ class Trainer:
         return model
 
     def load_dataset(self, dataset_name):
-        print(dataset_name)
+        expected_local_datasets_names_text_column = {
+                "efcamdat": "text", 
+                "EFCAMDAT": "text", 
+                "celva"   : "text", 
+                "CELVA"   : "text" 
+        }
         if os.path.isfile(dataset_name):
             with open(dataset_name, encoding='utf-8') as inpf:
                 texts = [sent.replace('\n', '') for sent in open(dataset_name, encoding='utf-8')]
@@ -123,6 +152,19 @@ class Trainer:
                 dataset = dataset.train_test_split(
                     test_size=0.1, shuffle=True, seed=200
                 )
+        elif expected_local_datasets_names_text_column\
+                .get(dataset_name,False):
+            # those are datasets I expect to follow the typical folder structure i used for my projects
+            # /{datasets_folder}/{dataset}/tokenization_batch/{split}/*.json.compact.gz
+            # each file is a json.compact.gz file of a batch of the total dataset
+            # each can be loaded using srsly and should have the following fields (they can be nested objects:
+            # text_id, text, text_metadata, sentences, tokens
+            # if training_strategy is "FULL+LLM-TOKENIZE"
+            # then load each batch json and get the "text field
+            # if training_strategy is "RESUME+LLM-TOKENIZE"
+            # then find the latest processed batch and load onwards getting "text" field
+            # if training_strategy is "FULL+HUMAN-TOKENIZE" 
+            # then load each batch json and get "tokens" which is an array of token objects
         else:
             dataset = hf_load_dataset(dataset_name)
         sample = dataset['train'].shuffle(seed=42).select(range(3))
