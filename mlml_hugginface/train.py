@@ -42,7 +42,7 @@ class Trainer:
         self.dataset_name = self.dataset_name()
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
 
-        self.save_data_splits()
+        # self.save_data_splits()
 
         if self.config.HF_CHECKPOINT:
             self.model_folderpath = self.config.HF_CHECKPOINT
