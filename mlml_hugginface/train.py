@@ -41,12 +41,10 @@ class Trainer:
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
         self.dataset_name = self.dataset_name()
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
-        is_hf_checkpoint_given = self.config.HF_CHECKPOINT is not None
-        is_to_apply_lora = self.config.LORA
 
         self.save_data_splits()
 
-        if is_hf_checkpoint_given:
+        if self.config.HF_CHECKPOINT:
             self.model_folderpath = self.config.HF_CHECKPOINT
             self.tokenizer_folderpath = self.config.HF_CHECKPOINT
         else:
@@ -76,6 +74,7 @@ class Trainer:
             mlm_probability=self.config.MLM_PROBABILITY,
             return_tensors='pt',
         )
+        exit()
 
     def save_data_splits(self):
         train_fp = f"./train_{self.dataset_name}"
