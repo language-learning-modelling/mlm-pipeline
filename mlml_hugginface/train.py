@@ -1,6 +1,7 @@
 import json
 import random
 import os
+import pathlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -19,10 +20,6 @@ from transformers import TrainingArguments as HF_TrainingArguments
 from peft import LoraConfig, get_peft_model
 import bitsandbytes as bnb
 
-
-from dataclasses import dataclass, field
-from enum import Enum
-
 # Define the enum for training strategies
 class TrainingStrategy(Enum):
     FULL_LLM_TOKENIZE = "FULL+LLM-TOKENIZE"
@@ -37,6 +34,8 @@ TRAINING_STRATEGY_MAP = {strategy.value: strategy for strategy in TrainingStrate
 class TrainerConfig:
     MODEL_CHECKPOINT: str
     DATASET_NAME: str
+    DATASET_FOLDER: str = "datasets"
+    SPLIT: str = None
     HF_CHECKPOINT: bool = False
     LORA: bool = False
     MLM_PROBABILITY: float = 0.15
@@ -144,6 +143,8 @@ class Trainer:
                 "celva"   : "text", 
                 "CELVA"   : "text" 
         }
+        # if dataset_name is a filepath that its a single training file
+        # else we assume its a folder path
         if os.path.isfile(dataset_name):
             with open(dataset_name, encoding='utf-8') as inpf:
                 texts = [sent.replace('\n', '') for sent in open(dataset_name, encoding='utf-8')]
@@ -154,8 +155,10 @@ class Trainer:
                 )
         elif expected_local_datasets_names_text_column\
                 .get(dataset_name,False):
+            # here we assume the expected dataset is in a folder structre.
             # those are datasets I expect to follow the typical folder structure i used for my projects
-            # /{datasets_folder}/{dataset}/tokenization_batch/{split}/*.json.compact.gz
+            # ./{datasets_folder}/{dataset}/tokenization_batch/{split}/*.json.compact.gz
+            # if splti else ./{datasets_folder}/{dataset}/tokenization_batch/*.json.compact.gz 
             # each file is a json.compact.gz file of a batch of the total dataset
             # each can be loaded using srsly and should have the following fields (they can be nested objects:
             # text_id, text, text_metadata, sentences, tokens
@@ -167,6 +170,21 @@ class Trainer:
             # then load each batch json and get "tokens" which is an array of token objects
             print(f"{self.config.TRAINING_STRATEGY} == {TrainingStrategy.FULL_LLM_TOKENIZE}")
             if self.config.TRAINING_STRATEGY.value == TrainingStrategy.FULL_LLM_TOKENIZE.value:
+                expected_folderpath = pathlib.Path("./") /\
+                        (
+                        f"{self.config.DATASET_FOLDER}"
+                        f"{self.config.DATASET_NAME.upper()}"
+                        f"tokenization_batch"
+                        f"{self.config.SPLIT if self.config.SPLIT else "" }"
+                        )
+                # assuming is from folderpath, it's 
+                # if htere is a SPLIT use only this split
+                # if there is no split try getting /train /test
+                # if splti else ./{datasets_folder}/{dataset}/tokenization_batch/*.json.compact.gz 
+                # each file is a json.compact.gz file of a batch of the total dataset
+                for f in datasets.iterdir(): 
+                    print(f)
+                input()
                 print("then load each batch json and get the text field")
             else:
                 raise Error("TRAINING_STRATEGY seems to not be a valid one")
