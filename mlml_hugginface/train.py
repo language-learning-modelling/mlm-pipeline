@@ -65,6 +65,7 @@ class Trainer:
         self.config = config
         self.dataset_name = self.dataset_name()
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
+        exit()
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
 
         # self.save_data_splits()
@@ -187,7 +188,10 @@ class Trainer:
                 dataset = defaultdict(list)
                 for f in self.expected_folderpath.iterdir(): 
                     with open(f) as inpf:
-                        data_dict = srsly.read_gzip_json(f)
+                        try:
+                            data_dict = srsly.read_gzip_json(f)
+                        except:
+                            print(f)
                         dataset["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
                 dataset = HF_Dataset.from_dict(my_dict)
                 dataset = dataset.train_test_split(
