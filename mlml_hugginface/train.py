@@ -42,7 +42,7 @@ class TrainerConfig:
     MLM_PROBABILITY: float = 0.15
     BATCH_SIZE: int = 16
     # Allow training_strategy as a string input, which will be converted to enum
-    training_strategy: str = field(default="FULL+LLM-TOKENIZE")
+    TRAINING_STRATEGY: str = field(default="FULL+LLM-TOKENIZE")
 
     def __post_init__(self):
         required_fields = ["MODEL_CHECKPOINT", "DATASET_NAME"]
@@ -51,19 +51,19 @@ class TrainerConfig:
                 raise ValueError(f'missing {field_key} config property')
 
         # Convert the string training_strategy to enum if it's a valid string
-        if isinstance(self.training_strategy, str):
-            if self.training_strategy not in TRAINING_STRATEGY_MAP:
-                raise ValueError(f'Invalid training strategy: {self.training_strategy}')
-            self.training_strategy = TRAINING_STRATEGY_MAP[self.training_strategy]
-        elif not isinstance(self.training_strategy, TrainingStrategy):
-            raise ValueError(f'Invalid training strategy type: {self.training_strategy}')
+        if isinstance(self.TRAINING_STRATEGY, str):
+            if self.TRAINING_STRATEGY not in TRAINING_STRATEGY_MAP:
+                raise ValueError(f'Invalid training strategy: {self.TRAINING_STRATEGY}')
+            self.TRAINING_STRATEGY = TRAINING_STRATEGY_MAP[self.TRAINING_STRATEGY]
+        elif not isinstance(self.TRAINING_STRATEGY, TrainingStrategy):
+            raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
 
 class Trainer:
     def __init__(self, config: TrainerConfig):
         self.config = config
         self.dataset_name = self.dataset_name()
-        self.dataset = self.load_dataset(self.config.DATASET_NAME, self.config)
+        self.dataset = self.load_dataset(self.config.DATASET_NAME, self.config.TRAINING_STRATEGY)
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
 
         # self.save_data_splits()
@@ -167,7 +167,6 @@ class Trainer:
             # then load each batch json and get "tokens" which is an array of token objects
             if training_strategy == TrainingStrategy.FULL_LLM_TOKENIZE:
                 print("then load each batch json and get the text field")
-
         else:
             dataset = hf_load_dataset(dataset_name)
         sample = dataset['train'].shuffle(seed=42).select(range(3))
