@@ -6,6 +6,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 
+import srsly 
 import torch
 from datasets import load_dataset as hf_load_dataset
 from datasets import Dataset as HF_Dataset
@@ -181,7 +182,9 @@ class Trainer:
                 # if splti else ./{datasets_folder}/{dataset}/tokenization_batch/*.json.compact.gz 
                 # each file is a json.compact.gz file of a batch of the total dataset
                 for f in self.expected_folderpath.iterdir(): 
-                    print(f)
+                    with open(f) as inpf:
+                        data_dict = srsly.read_gzip_json(f)
+                        print(data_dict);input()
                 print("then load each batch json and get the text field")
             else:
                 raise Error("TRAINING_STRATEGY seems to not be a valid one")
