@@ -182,11 +182,9 @@ class Trainer:
                 # each file is a json.compact.gz file of a batch of the total dataset
                 for f in self.expected_folderpath.iterdir(): 
                     print(f)
-                input()
                 print("then load each batch json and get the text field")
             else:
                 raise Error("TRAINING_STRATEGY seems to not be a valid one")
-            input()
         else:
             dataset = hf_load_dataset(dataset_name)
         sample = dataset['train'].shuffle(seed=42).select(range(3))
