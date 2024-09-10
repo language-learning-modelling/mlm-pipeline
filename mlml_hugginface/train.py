@@ -185,15 +185,16 @@ class Trainer:
                 # if there is no split try getting /train /test
                 # if splti else ./{datasets_folder}/{dataset}/tokenization_batch/*.json.compact.gz 
                 # each file is a json.compact.gz file of a batch of the total dataset
-                dataset = defaultdict(list)
+                dataset_dict = defaultdict(list)
                 for f in self.expected_folderpath.iterdir(): 
                     with open(f) as inpf:
                         try:
                             data_dict = srsly.read_gzip_json(f)
+                            print(f"SUCCEED: {f)")
                         except:
-                            print(f)
-                        dataset["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
-                dataset = HF_Dataset.from_dict(my_dict)
+                            print(f"FAILED: {f)")
+                        dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
+                dataset = HF_Dataset.from_dict(dataset_dict)
                 dataset = dataset.train_test_split(
                     test_size=0.1, shuffle=True, seed=200
                 )
