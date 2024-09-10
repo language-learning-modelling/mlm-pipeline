@@ -189,7 +189,6 @@ class Trainer:
                     with open(f) as inpf:
                         data_dict = srsly.read_gzip_json(f)
                         dataset["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
-                        print(raw_texts);input()
                 dataset = HF_Dataset.from_dict(my_dict)
                 dataset = dataset.train_test_split(
                     test_size=0.1, shuffle=True, seed=200
