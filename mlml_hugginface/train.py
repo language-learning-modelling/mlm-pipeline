@@ -63,7 +63,7 @@ class Trainer:
     def __init__(self, config: TrainerConfig):
         self.config = config
         self.dataset_name = self.dataset_name()
-        self.dataset = self.load_dataset(self.config.DATASET_NAME, self.config.TRAINING_STRATEGY)
+        self.dataset = self.load_dataset(self.config.DATASET_NAME)
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
 
         # self.save_data_splits()
