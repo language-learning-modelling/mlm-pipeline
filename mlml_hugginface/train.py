@@ -3,6 +3,7 @@ import random
 import os
 import pathlib
 import time
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -183,12 +184,16 @@ class Trainer:
                 # if there is no split try getting /train /test
                 # if splti else ./{datasets_folder}/{dataset}/tokenization_batch/*.json.compact.gz 
                 # each file is a json.compact.gz file of a batch of the total dataset
-                raw_texts = []
+                dataset = defaultdict(list)
                 for f in self.expected_folderpath.iterdir(): 
                     with open(f) as inpf:
                         data_dict = srsly.read_gzip_json(f)
-                        raw_texts.extend([{"text": instance_d["text"]} for instance_d in data_dict.values()])
+                        dataset["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
                         print(raw_texts);input()
+                dataset = HF_Dataset.from_dict(my_dict)
+                dataset = dataset.train_test_split(
+                    test_size=0.1, shuffle=True, seed=200
+                )
                 print("then load each batch json and get the text field")
             else:
                 raise Error("TRAINING_STRATEGY seems to not be a valid one")
