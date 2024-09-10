@@ -165,6 +165,7 @@ class Trainer:
             # then find the latest processed batch and load onwards getting "text" field
             # if training_strategy is "FULL+HUMAN-TOKENIZE" 
             # then load each batch json and get "tokens" which is an array of token objects
+            print(training_strategy);input()
             if training_strategy == TrainingStrategy.FULL_LLM_TOKENIZE:
                 print("then load each batch json and get the text field")
         else:
