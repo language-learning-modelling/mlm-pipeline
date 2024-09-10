@@ -170,7 +170,7 @@ class Trainer:
             # then load each batch json and get "tokens" which is an array of token objects
             print(f"{self.config.TRAINING_STRATEGY} == {TrainingStrategy.FULL_LLM_TOKENIZE}")
             if self.config.TRAINING_STRATEGY.value == TrainingStrategy.FULL_LLM_TOKENIZE.value:
-                expected_folderpath = pathlib.Path("./") /\
+                self.expected_folderpath = pathlib.Path("./") /\
                         f"{self.config.DATASET_FOLDER}"/\
                         f"{self.config.DATASET_NAME.upper()}"/\
                         f"tokenization_batch"/\
@@ -180,7 +180,7 @@ class Trainer:
                 # if there is no split try getting /train /test
                 # if splti else ./{datasets_folder}/{dataset}/tokenization_batch/*.json.compact.gz 
                 # each file is a json.compact.gz file of a batch of the total dataset
-                for f in datasets.iterdir(): 
+                for f in self.expected_folderpath.iterdir(): 
                     print(f)
                 input()
                 print("then load each batch json and get the text field")
