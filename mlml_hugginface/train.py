@@ -167,7 +167,7 @@ class Trainer:
             # then load each batch json and get "tokens" which is an array of token objects
             print(training_strategy);input()
             #
-            if training_strategy == TrainingStrategy.FULL_LLM_TOKENIZE:
+            if self.config.TRAINING_STRATEGY == TrainingStrategy.FULL_LLM_TOKENIZE:
                 print("then load each batch json and get the text field")
         else:
             dataset = hf_load_dataset(dataset_name)
