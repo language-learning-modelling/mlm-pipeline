@@ -137,7 +137,7 @@ class Trainer:
         )
         return model
 
-    def load_dataset(self, dataset_name, training_strategy):
+    def load_dataset(self, dataset_name):
         expected_local_datasets_names_text_column = {
                 "efcamdat": "text", 
                 "EFCAMDAT": "text", 
@@ -165,10 +165,14 @@ class Trainer:
             # then find the latest processed batch and load onwards getting "text" field
             # if training_strategy is "FULL+HUMAN-TOKENIZE" 
             # then load each batch json and get "tokens" which is an array of token objects
-            print(training_strategy);input()
+            print(training_strategy)
             #
+            self.config.TRAINING_STRATEGY == TrainingStrategy.FULL_LLM_TOKENIZE:
             if self.config.TRAINING_STRATEGY == TrainingStrategy.FULL_LLM_TOKENIZE:
                 print("then load each batch json and get the text field")
+            else:
+                print("else idk why")
+            input()
         else:
             dataset = hf_load_dataset(dataset_name)
         sample = dataset['train'].shuffle(seed=42).select(range(3))
