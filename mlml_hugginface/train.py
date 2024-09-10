@@ -174,7 +174,7 @@ class Trainer:
                         f"{self.config.DATASET_FOLDER}"/\
                         f"{self.config.DATASET_NAME.upper()}"/\
                         f"tokenization_batch"/\
-                        f"{self.config.SPLIT if self.config.SPLIT else ""}"
+                        f"{self.config.SPLIT if self.config.SPLIT else ''}"
                 # assuming is from folderpath, it's 
                 # if htere is a SPLIT use only this split
                 # if there is no split try getting /train /test
