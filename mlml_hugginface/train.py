@@ -190,9 +190,9 @@ class Trainer:
                     with open(f) as inpf:
                         try:
                             data_dict = srsly.read_gzip_json(f)
-                            print(f"SUCCEED: {f)")
+                            print(f"SUCCEED: {f}")
                         except:
-                            print(f"FAILED: {f)")
+                            print(f"FAILED: {f}")
                         dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
                 dataset = HF_Dataset.from_dict(dataset_dict)
                 dataset = dataset.train_test_split(
