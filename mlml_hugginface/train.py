@@ -176,15 +176,19 @@ class Trainer:
                         f"{self.config.DATASET_NAME.upper()}"/\
                         f"tokenization_batch"/\
                         f"{self.config.SPLIT if self.config.SPLIT else ''}"
+                expected_text_column = expected_local_datasets_names_text_column\
+                                                    .get(dataset_name,False)
                 # assuming is from folderpath, it's 
                 # if htere is a SPLIT use only this split
                 # if there is no split try getting /train /test
                 # if splti else ./{datasets_folder}/{dataset}/tokenization_batch/*.json.compact.gz 
                 # each file is a json.compact.gz file of a batch of the total dataset
+                raw_texts = []
                 for f in self.expected_folderpath.iterdir(): 
                     with open(f) as inpf:
                         data_dict = srsly.read_gzip_json(f)
-                        print(data_dict);input()
+                        raw_texts.extend([{"text": instance_d["text"]} for instance_d in data_dict.values()])
+                        print(raw_texts);input()
                 print("then load each batch json and get the text field")
             else:
                 raise Error("TRAINING_STRATEGY seems to not be a valid one")
