@@ -166,7 +166,7 @@ class Trainer:
             # if training_strategy is "FULL+HUMAN-TOKENIZE" 
             # then load each batch json and get "tokens" which is an array of token objects
             print(f"{self.config.TRAINING_STRATEGY} == {TrainingStrategy.FULL_LLM_TOKENIZE}")
-            if self.config.TRAINING_STRATEGY == TrainingStrategy.FULL_LLM_TOKENIZE:
+            if self.config.TRAINING_STRATEGY.value == TrainingStrategy.FULL_LLM_TOKENIZE.value:
                 print("then load each batch json and get the text field")
             else:
                 print("else idk why")
