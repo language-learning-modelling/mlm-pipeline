@@ -169,7 +169,7 @@ class Trainer:
             if self.config.TRAINING_STRATEGY.value == TrainingStrategy.FULL_LLM_TOKENIZE.value:
                 print("then load each batch json and get the text field")
             else:
-                print("else idk why")
+                raise Error("TRAINING_STRATEGY seems to not be a valid one")
             input()
         else:
             dataset = hf_load_dataset(dataset_name)
