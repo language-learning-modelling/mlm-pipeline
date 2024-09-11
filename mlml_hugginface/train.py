@@ -74,8 +74,9 @@ class Trainer:
             self.tokenizer_folderpath = self.config.HF_CHECKPOINT
         else:
             self.expected_checkpoint_folder = f"./models/{self.initial_model_name}"
-            self.expected_model_folder = f"{self.expected_checkpoint_folder}/model/"
-            self.expected_tokenizer_folder = f"{self.expected_checkpoint_folder}/tokenizer/"
+            # changing expected model and tokenizer folder to be like how HF sves then in the trainer
+            self.expected_model_folder = f"{self.expected_checkpoint_folder}" #/model/"
+            self.expected_tokenizer_folder = f"{self.expected_checkpoint_folder}" # /tokenizer/"
             self.model_folderpath = self.expected_model_folder
             self.tokenizer_folderpath = self.expected_tokenizer_folder
 
