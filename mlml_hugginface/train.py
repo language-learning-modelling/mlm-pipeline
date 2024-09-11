@@ -41,7 +41,7 @@ class TrainerConfig:
     HF_CHECKPOINT: bool = False
     LORA: bool = False
     MLM_PROBABILITY: float = 0.15
-    BATCH_SIZE: int = 16
+    BATCH_SIZE: int = 4 
     # Allow training_strategy as a string input, which will be converted to enum
     TRAINING_STRATEGY: str = field(default="FULL+LLM-TOKENIZE")
 
@@ -65,7 +65,6 @@ class Trainer:
         self.config = config
         self.dataset_name = self.dataset_name()
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
-        exit()
         self.initial_model_name = self.get_initial_model_name_from_checkpoint()
 
         # self.save_data_splits()
@@ -100,7 +99,6 @@ class Trainer:
             mlm_probability=self.config.MLM_PROBABILITY,
             return_tensors='pt',
         )
-        exit()
 
     def save_data_splits(self):
         train_fp = f"./train_{self.dataset_name}"
@@ -194,6 +192,7 @@ class Trainer:
                         except:
                             print(f"FAILED: {f}")
                         dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
+                    break
                 dataset = HF_Dataset.from_dict(dataset_dict)
                 dataset = dataset.train_test_split(
                     test_size=0.1, shuffle=True, seed=200
