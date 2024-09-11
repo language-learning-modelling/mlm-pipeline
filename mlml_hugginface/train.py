@@ -83,7 +83,7 @@ class Trainer:
         print(self.config)
         self.tokenizer = self.load_tokenizer(folderpath=self.tokenizer_folderpath)
         self.model = self.load_model(folderpath=self.model_folderpath)
-        if is_to_apply_lora:
+        if self.config.LORA:
             self.model = self.get_lora_model(self.model)
 
         print(f'>>> tokenizing dataset...')
