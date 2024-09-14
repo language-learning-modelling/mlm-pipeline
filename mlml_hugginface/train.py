@@ -67,6 +67,7 @@ class SaveAtEndOfEpochCallback(TrainerCallback):
 class Trainer:
     def __init__(self, config: TrainerConfig):
         self.config = config
+        self.model_name = self.model_name()
         self.dataset_name = self.dataset_name()
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
 
@@ -76,7 +77,8 @@ class Trainer:
             self.model_folderpath = self.config.HF_CHECKPOINT
             self.tokenizer_folderpath = self.config.HF_CHECKPOINT
         else:
-            self.expected_checkpoint_folder = f"./models/{self.dataset_name}"
+            self.expected_checkpoints_folder = f"./models/{self.model_name}-{self.dataset_name}"
+            print(self.expected_checkpoints_folder);input()
             # changing expected model and tokenizer folder to be like how HF sves then in the trainer
             self.expected_model_folder = f"{self.expected_checkpoint_folder}" #/model/"
             self.expected_tokenizer_folder = f"{self.expected_checkpoint_folder}" # /tokenizer/"
@@ -113,6 +115,13 @@ class Trainer:
         with open(test_fp, "w") as outf:
             for e in self.dataset['test']:
                 outf.write(e['text'] + '\n')
+
+    def model_name(self):
+        if '/' in self.config.MODEL_CHECKPOINT:
+            model_name = self.config.MODEL_CHECKPOINT.rstrip('/').split('/')[-1]
+        else:
+            model_name = self.config.MODEL_CHECKPOINT
+        return model_name
 
     def dataset_name(self):
         if '/' in self.config.DATASET_NAME:
