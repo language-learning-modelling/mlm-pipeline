@@ -84,7 +84,7 @@ class Trainer:
             self.model_folderpath = self.config.HF_CHECKPOINT
             self.tokenizer_folderpath = self.config.HF_CHECKPOINT
         elif self.has_checkpoint_config:
-            self.expected_checkpoints_folder = f"./models/{self.model_name}-{self.dataset_name}/{run_hash}/{training_checkpoint}"
+            self.expected_checkpoints_folder = f"./models/{self.model_name}-{self.dataset_name}/{self.run_hash}/{self.config.TRAINING_CHECKPOINT}"
             print(self.expected_checkpoints_folder);input()
             # changing expected model and tokenizer folder to be like how HF sves then in the trainer
             self.expected_base_model_folder = self.expected_checkpoints_folder 
