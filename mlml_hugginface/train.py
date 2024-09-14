@@ -64,6 +64,9 @@ class TrainerConfig:
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
 class SaveAtEndOfEpochCallback(TrainerCallback):
+    def on_init_end(self, args, state, control, **kwargs):
+        print(state);input()
+
     def on_epoch_end(self, args, state, control, **kwargs):
         control.should_save = True  # Force save at the end of the epoch
 
