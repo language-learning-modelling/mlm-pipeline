@@ -93,7 +93,7 @@ class Trainer:
             self.tokenizer_folderpath = self.expected_tokenizer_folder
 
         else: # create new training from scratch from base model
-            self.expected_checkpoints_folder = f"./models/{self.model_name}-{self.dataset_name}"
+            self.expected_checkpoints_folder = f"./models/{self.model_name}-finetuned-{self.dataset_name}/{self.run_hash}"
             print(self.expected_checkpoints_folder);input()
             # changing expected model and tokenizer folder to be like how HF sves then in the trainer
             self.expected_base_model_folder = f"./models/{self.model_name}"
