@@ -70,7 +70,7 @@ class SaveAtEndOfEpochCallback(TrainerCallback):
 class Trainer:
     def __init__(self, config: TrainerConfig):
         self.config = config
-        self.has_checkpoint_config = (not self.config.__getattribute__("RUN_HASH") is None) and (not self.config.__getattribute__("training_checkpoint") is None)
+        self.has_checkpoint_config = (not self.config.__getattribute__("RUN_HASH") is None) and (not self.config.__getattribute__("TRAINING_CHECKPOINT") is None)
         self.model_name = self.model_name()
         self.dataset_name = self.dataset_name()
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
