@@ -75,7 +75,7 @@ class Trainer:
         self.dataset_name = self.dataset_name()
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
         self.run_hash =  self.config.RUN_RASH if self.config.__getattribute__("RUN_HASH") is None else datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-        self.trained_model_output_dir = f'./models/{self.model_name}-finetuned-{self.dataset_name}/{run_hash}'
+        self.trained_model_output_dir = f'./models/{self.model_name}-finetuned-{self.dataset_name}/{self.run_hash}'
         if not os.path.isdir(self.trained_model_output_dir):
             os.makedirs(self.trained_model_output_dir)
         # self.save_data_splits()
