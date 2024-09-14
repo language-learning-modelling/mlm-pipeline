@@ -74,7 +74,7 @@ class Trainer:
         self.model_name = self.model_name()
         self.dataset_name = self.dataset_name()
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
-        self.run_hash =  self.config.RUN_HASH if self.config.__getattribute__("RUN_HASH") is None else datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+        self.run_hash =  datetime.datetime.now().strftime("%Y-%m-%d-%H-%M") if self.config.__getattribute__("RUN_HASH") is None else self.config.RUN_HASH
         self.trained_model_output_dir = f'./models/{self.model_name}-finetuned-{self.dataset_name}/{self.run_hash}'
         if not os.path.isdir(self.trained_model_output_dir):
             os.makedirs(self.trained_model_output_dir)
