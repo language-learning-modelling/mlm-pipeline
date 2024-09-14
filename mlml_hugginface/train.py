@@ -64,7 +64,7 @@ class TrainerConfig:
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
 class SaveAtEndOfEpochCallback(TrainerCallback):
-    def on_init_end(self, args, state, control, **kwargs):
+    def on_train_begin(self, args, state, control, **kwargs)
         print(state);input()
 
     def on_epoch_end(self, args, state, control, **kwargs):
@@ -282,6 +282,7 @@ class Trainer:
 
         training_args = HF_TrainingArguments(
             output_dir=self.trained_model_output_dir,
+            resume_from_checkpoint=self.model_folderpath,
             num_train_epochs=1,
             overwrite_output_dir=True,
             logging_strategy='steps',
@@ -296,7 +297,6 @@ class Trainer:
             per_device_eval_batch_size=self.config.BATCH_SIZE,
             push_to_hub=False,
             fp16=False,
-            resume_from_checkpoint=True,
             save_total_limit=3,
             load_best_model_at_end=True
         )
