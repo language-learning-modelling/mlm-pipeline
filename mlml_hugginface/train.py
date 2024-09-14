@@ -65,6 +65,7 @@ class TrainerConfig:
 
 class SaveAtEndOfEpochCallback(TrainerCallback):
     def on_train_begin(self, args, state, control, **kwargs):
+        state.global_step = 120 
         print(state);input()
 
     def on_epoch_end(self, args, state, control, **kwargs):
@@ -283,8 +284,8 @@ class Trainer:
         training_args = HF_TrainingArguments(
             output_dir=self.trained_model_output_dir,
             resume_from_checkpoint=self.model_folderpath,
-            num_train_epochs=1,
             overwrite_output_dir=True,
+            num_train_epochs=1,
             logging_strategy='steps',
             evaluation_strategy='steps',
             save_strategy='steps',
