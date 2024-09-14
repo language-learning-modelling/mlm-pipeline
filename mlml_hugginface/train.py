@@ -36,8 +36,10 @@ TRAINING_STRATEGY_MAP = {strategy.value: strategy for strategy in TrainingStrate
 
 @dataclass
 class TrainerConfig:
-    MODEL_CHECKPOINT: str
-    DATASET_NAME: str
+    BASE_MODEL_NAME: str = None
+    RUN_HASH: str = None
+    TRAINING_CHECKPOINT: str = None
+    DATASET_NAME: str = None
     DATASET_FOLDER: str = "datasets"
     SPLIT: str = None
     HF_CHECKPOINT: bool = False
@@ -48,7 +50,7 @@ class TrainerConfig:
     TRAINING_STRATEGY: str = field(default="FULL+LLM-TOKENIZE")
 
     def __post_init__(self):
-        required_fields = ["MODEL_CHECKPOINT", "DATASET_NAME"]
+        required_fields = ["BASE_MODEL_NAME", "DATASET_NAME"]
         for field_key in self.__dataclass_fields__.keys():
             if field_key in required_fields and self.__getattribute__(field_key) is None:
                 raise ValueError(f'missing {field_key} config property')
@@ -68,16 +70,29 @@ class SaveAtEndOfEpochCallback(TrainerCallback):
 class Trainer:
     def __init__(self, config: TrainerConfig):
         self.config = config
+        self.has_checkpoint_config = (not self.config.__getattribute__("RUN_HASH") is None) and (not self.config.__getattribute__("training_checkpoint") is None)
         self.model_name = self.model_name()
         self.dataset_name = self.dataset_name()
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
-
+        self.run_hash =  self.config.RUN_RASH if self.config.__getattribute__("RUN_HASH") is None else datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+        self.trained_model_output_dir = f'./models/{model_name}-finetuned-{dataset_name}/{run_hash}'
+        if not os.path.isdir(self.trained_model_output_dir):
+            os.makedirs(self.trained_model_output_dir)
         # self.save_data_splits()
 
         if self.config.HF_CHECKPOINT:
             self.model_folderpath = self.config.HF_CHECKPOINT
             self.tokenizer_folderpath = self.config.HF_CHECKPOINT
-        else:
+        elif self.has_checkpoint_config:
+            self.expected_checkpoints_folder = f"./models/{self.model_name}-{self.dataset_name}/{run_hash}/{training_checkpoint}"
+            print(self.expected_checkpoints_folder);input()
+            # changing expected model and tokenizer folder to be like how HF sves then in the trainer
+            self.expected_base_model_folder = self.expected_checkpoints_folder 
+            self.expected_tokenizer_folder = self.expected_checkpoints_folder
+            self.model_folderpath = self.expected_base_model_folder
+            self.tokenizer_folderpath = self.expected_tokenizer_folder
+
+        else: # create new training from scratch from base model
             self.expected_checkpoints_folder = f"./models/{self.model_name}-{self.dataset_name}"
             print(self.expected_checkpoints_folder);input()
             # changing expected model and tokenizer folder to be like how HF sves then in the trainer
@@ -261,15 +276,9 @@ class Trainer:
         print(f'>>> Training model...')
 
         logging_steps = len(self.tokenized_dataset['train']) // self.config.BATCH_SIZE
-        model_name = self.config.MODEL_CHECKPOINT.split('/')[-1]
-        dataset_name = self.dataset_name
-        run_hash = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-        finetuned_model_output_dir = f'./models/{model_name}-finetuned-{dataset_name}/{run_hash}'
-        if not os.path.isdir(finetuned_model_output_dir):
-            os.makedirs(finetuned_model_output_dir)
 
         training_args = HF_TrainingArguments(
-            output_dir=finetuned_model_output_dir,
+            output_dir=self.trained_model_output_dir,
             num_train_epochs=1,
             overwrite_output_dir=True,
             logging_strategy='steps',
