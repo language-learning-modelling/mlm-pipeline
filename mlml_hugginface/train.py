@@ -197,7 +197,7 @@ class Trainer:
                         f"{self.config.DATASET_FOLDER}"/\
                         f"{self.config.DATASET_NAME.upper()}"/\
                         f"tokenization_batch"/\
-                        f"{self.config.SPLIT.lower() if self.config.SPLIT else ''}"
+                        f"{self.config.SPLIT if self.config.SPLIT else ''}"
                 expected_text_column = expected_local_datasets_names_text_column\
                                                     .get(dataset_name,False)
                 # assuming is from folderpath, it's 
