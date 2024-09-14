@@ -15,6 +15,7 @@ from transformers import (
     AutoModelForMaskedLM,
     AutoTokenizer,
     DataCollatorForLanguageModeling,
+    TrainerCallback
 )
 from transformers import Trainer as HF_Trainer
 from transformers import TrainingArguments as HF_TrainingArguments
@@ -59,13 +60,15 @@ class TrainerConfig:
         elif not isinstance(self.TRAINING_STRATEGY, TrainingStrategy):
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
+class SaveAtEndOfEpochCallback(TrainerCallback):
+    def on_epoch_end(self, args, state, control, **kwargs):
+        control.should_save = True  # Force save at the end of the epoch
 
 class Trainer:
     def __init__(self, config: TrainerConfig):
         self.config = config
         self.dataset_name = self.dataset_name()
         self.dataset = self.load_dataset(self.config.DATASET_NAME)
-        self.initial_model_name = self.get_initial_model_name_from_checkpoint()
 
         # self.save_data_splits()
 
@@ -73,7 +76,7 @@ class Trainer:
             self.model_folderpath = self.config.HF_CHECKPOINT
             self.tokenizer_folderpath = self.config.HF_CHECKPOINT
         else:
-            self.expected_checkpoint_folder = f"./models/{self.initial_model_name}"
+            self.expected_checkpoint_folder = f"./models/{self.dataset_name}"
             # changing expected model and tokenizer folder to be like how HF sves then in the trainer
             self.expected_model_folder = f"{self.expected_checkpoint_folder}" #/model/"
             self.expected_tokenizer_folder = f"{self.expected_checkpoint_folder}" # /tokenizer/"
@@ -117,13 +120,6 @@ class Trainer:
         else:
             dataset_name = self.config.DATASET_NAME
         return dataset_name
-
-    def get_initial_model_name_from_checkpoint(self):
-        if '/' in self.config.MODEL_CHECKPOINT:
-            initial_model_name = self.config.MODEL_CHECKPOINT.rstrip('/').split('/')[-1]
-        else:
-            initial_model_name = self.config.MODEL_CHECKPOINT
-        return initial_model_name
 
     def load_tokenizer(self, folderpath):
         print(folderpath)
@@ -257,15 +253,19 @@ class Trainer:
         logging_steps = len(self.tokenized_dataset['train']) // self.config.BATCH_SIZE
         model_name = self.config.MODEL_CHECKPOINT.split('/')[-1]
         dataset_name = self.dataset_name
-        finetuned_model_output_dir = f'./models/{model_name}-finetuned-{dataset_name}'
+        run_hash = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+        finetuned_model_output_dir = f'./models/{model_name}-finetuned-{dataset_name}/{run_hash}'
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
 
         training_args = HF_TrainingArguments(
             output_dir=finetuned_model_output_dir,
-            num_train_epochs=10,
+            num_train_epochs=1,
             overwrite_output_dir=True,
             logging_strategy='epoch',
             evaluation_strategy='epoch',
-            save_strategy='epoch',
+            save_strategy='steps',
+            save_steps=10,
             learning_rate=5e-5,
             weight_decay=0.01,
             per_device_train_batch_size=self.config.BATCH_SIZE,
@@ -284,8 +284,11 @@ class Trainer:
             eval_dataset=self.tokenized_dataset['test'],
             data_collator=self.mlm_collator,
             tokenizer=self.tokenizer,
+            callbacks=[SaveAtEndOfEpochCallback()]
         )
         hf_trainer.train()
+
+
 
 
 if __name__ == '__main__':
