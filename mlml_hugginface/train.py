@@ -133,10 +133,10 @@ class Trainer:
                 outf.write(e['text'] + '\n')
 
     def model_name(self):
-        if '/' in self.config.MODEL_CHECKPOINT:
-            model_name = self.config.MODEL_CHECKPOINT.rstrip('/').split('/')[-1]
+        if '/' in self.config.BASE_MODEL_NAME:
+            model_name = self.config.BASE_MODEL_NAME.rstrip('/').split('/')[-1]
         else:
-            model_name = self.config.MODEL_CHECKPOINT
+            model_name = self.config.BASE_MODEL_NAME
         return model_name
 
     def dataset_name(self):
