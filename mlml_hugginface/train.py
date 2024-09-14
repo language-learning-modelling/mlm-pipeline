@@ -255,6 +255,8 @@ class Trainer:
         dataset_name = self.dataset_name
         run_hash = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
         finetuned_model_output_dir = f'./models/{model_name}-finetuned-{dataset_name}/{run_hash}'
+        print(finetuned_model_output_dir)
+        input()
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
 
