@@ -296,7 +296,6 @@ class Trainer:
 
         training_args = HF_TrainingArguments(
             output_dir=self.trained_model_output_dir,
-            resume_from_checkpoint=self.model_folderpath,
             overwrite_output_dir=True,
             num_train_epochs=1,
             logging_strategy='steps',
@@ -324,7 +323,7 @@ class Trainer:
             tokenizer=self.tokenizer,
             callbacks=[SaveAtEndOfEpochCallback()]
         )
-        hf_trainer.train()
+        hf_trainer.train(resume_from_checkpoint=self.model_folderpath)
 
 
 
