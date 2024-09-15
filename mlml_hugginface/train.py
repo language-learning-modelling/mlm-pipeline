@@ -79,7 +79,6 @@ class CustomTrainer(Trainer):
 
 class SaveAtEndOfEpochCallback(TrainerCallback):
     def on_train_begin(self, args, state, control, **kwargs):
-        state.global_step = 120 
         print(state);input()
 
     def on_epoch_end(self, args, state, control, **kwargs):
