@@ -16,6 +16,7 @@ from transformers import (
     AutoModelForMaskedLM,
     AutoTokenizer,
     DataCollatorForLanguageModeling,
+    Trainer,
     TrainerCallback
 )
 from transformers import Trainer as HF_Trainer
@@ -62,6 +63,19 @@ class TrainerConfig:
             self.TRAINING_STRATEGY = TRAINING_STRATEGY_MAP[self.TRAINING_STRATEGY]
         elif not isinstance(self.TRAINING_STRATEGY, TrainingStrategy):
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
+
+class CustomTrainer(Trainer):
+    def train(self, resume_from_checkpoint=None, **kwargs):
+        if resume_from_checkpoint is not None:
+            print(f"Loading checkpoint from {resume_from_checkpoint}")
+            # Load checkpoint logic here
+            if os.path.isdir(resume_from_checkpoint):
+                trainer_state_fp = os.path.join(resume_from_checkpoint, "trainer_state.json")
+                with open(trainer_state_fp) as inpf:
+                    state_dict = json.load(inpf)
+            print(state_dict)
+            print(f"Resuming at global_step {self.state.global_step}")
+        super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
 
 class SaveAtEndOfEpochCallback(TrainerCallback):
     def on_train_begin(self, args, state, control, **kwargs):
@@ -302,7 +316,7 @@ class Trainer:
             load_best_model_at_end=True
         )
 
-        hf_trainer = HF_Trainer(
+        hf_trainer = CustomTrainer(
             model=self.model,
             args=training_args,
             train_dataset=self.tokenized_dataset['train'],
