@@ -64,6 +64,21 @@ class TrainerConfig:
         elif not isinstance(self.TRAINING_STRATEGY, TrainingStrategy):
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
+class CustomDataCollator(DataCollatorForLanguageModeling):
+    def __call__(self, features):
+        # Separate the tokenized input and the metadata
+        ids = [feature.pop('id') for feature in features]
+        metadata = [feature.pop('text_metadata') for feature in features]
+        
+        # Call the parent collator to handle tokenized input
+        batch = super().__call__(features)
+        
+        # Add the id and metadata back to the batch
+        batch['id'] = ids
+        batch['metadata'] = metadata
+        
+        return batch
+
 class CustomTrainer(Trainer):
     # def __init__(self, *args, **kwargs):
     #     print_steps = kwargs.pop('print_steps', 100)  # Set default to 100 steps
@@ -156,7 +171,7 @@ class Trainer:
         )
         print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
 
-        self.mlm_collator = DataCollatorForLanguageModeling(
+        self.mlm_collator = CustomDataCollator(
             tokenizer=self.tokenizer,
             mlm=True,
             mlm_probability=self.config.MLM_PROBABILITY,
