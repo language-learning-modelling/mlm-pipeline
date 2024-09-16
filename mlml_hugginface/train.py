@@ -67,6 +67,7 @@ class TrainerConfig:
 class CustomDataCollator(DataCollatorForLanguageModeling):
     def __call__(self, features):
         # Separate the tokenized input and the metadata
+        print(features);input()
         metadata = [feature.pop('text_metadata') for feature in features]
         
         # Call the parent collator to handle tokenized input
@@ -94,7 +95,6 @@ class CustomTrainer(Trainer):
             print(state_dict)
             print(f"Resuming at global_step {self.state.global_step}")
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
-
 
 class PrintTrainingDataCallback(TrainerCallback):
     def __init__(self, print_steps):
