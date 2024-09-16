@@ -255,7 +255,9 @@ class Trainer:
                         except:
                             print(f"FAILED: {f}")
                         for instance_d in data_dict.values():
-                            print(instance_d["text_metadata"]);exit()
+                            for col_name in instance_d["text_metadata"].keys():
+                                print(col_name)
+                            exit()
                         dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
                         dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
                     break
