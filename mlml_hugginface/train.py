@@ -89,21 +89,21 @@ class PrintTrainingDataCallback(TrainerCallback):
 
     def on_step_end(self, args, state, control, **kwargs):
         print("*"*100,"Training step ending","*"*100)
-        input()
         step = state.global_step
-        if step % self.print_steps == 0:
-            trainer = kwargs.get("trainer")
-            if trainer is not None:
-                # Access the dataloader
-                dataloader = trainer.get_train_dataloader()
-                
-                # Print a sample batch from the dataloader
-                # Note: This method will get the data without advancing the iterator
-                for batch in dataloader:
-                    print(f"Step {step}:")
-                    print(batch)  # or print a sample of the batch data
-                    input()
-                    break
+        trainer = kwargs.get("trainer")
+        if trainer is not None:
+            # Access the dataloader
+            dataloader = trainer.get_train_dataloader()
+            
+            # Print a sample batch from the dataloader
+            # Note: This method will get the data without advancing the iterator
+            for batch in dataloader:
+                print(f"Step {step}:")
+                print(batch)  # or print a sample of the batch data
+                input()
+                break
+        print(step)
+        input()
 
 class SaveAtEndOfEpochCallback(TrainerCallback):
     def on_epoch_end(self, args, state, control, **kwargs):
