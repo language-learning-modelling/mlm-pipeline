@@ -254,6 +254,8 @@ class Trainer:
                             print(f"SUCCEED: {f}")
                         except:
                             print(f"FAILED: {f}")
+                        print(instance_d);exit()
+                        dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
                         dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
                     break
                 dataset = HF_Dataset.from_dict(dataset_dict)
