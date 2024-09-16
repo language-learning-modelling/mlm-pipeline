@@ -91,6 +91,8 @@ class PrintTrainingDataCallback(TrainerCallback):
         print("*"*100,"Training step ending","*"*100)
         step = state.global_step
         trainer = kwargs.get("trainer")
+        print(trainer)
+        input()
         if trainer is not None:
             # Access the dataloader
             dataloader = trainer.get_train_dataloader()
