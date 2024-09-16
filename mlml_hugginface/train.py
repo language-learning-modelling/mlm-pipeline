@@ -1,4 +1,4 @@
-import json
+mport json
 import random
 import os
 import pathlib
@@ -65,6 +65,11 @@ class TrainerConfig:
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
 class CustomTrainer(Trainer):
+    def __init__(self, *args, **kwargs):
+        print_steps = kwargs.pop('print_steps', 100)  # Set default to 100 steps
+        super().__init__(*args, **kwargs)
+        self.add_callback(PrintTrainingDataCallback(print_steps))
+
     def train(self, resume_from_checkpoint=None, **kwargs):
         if resume_from_checkpoint is not None:
             print(f"Loading checkpoint from {resume_from_checkpoint}")
@@ -77,10 +82,28 @@ class CustomTrainer(Trainer):
             print(f"Resuming at global_step {self.state.global_step}")
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
 
-class SaveAtEndOfEpochCallback(TrainerCallback):
-    def on_train_begin(self, args, state, control, **kwargs):
-        print(state);input()
 
+class PrintTrainingDataCallback(TrainerCallback):
+    def __init__(self, print_steps):
+        self.print_steps = print_steps
+
+    def on_step_end(self, args, state, control, **kwargs):
+        step = state.global_step
+        if step % self.print_steps == 0:
+            trainer = kwargs.get("trainer")
+            if trainer is not None:
+                # Access the dataloader
+                dataloader = trainer.get_train_dataloader()
+                
+                # Print a sample batch from the dataloader
+                # Note: This method will get the data without advancing the iterator
+                for batch in dataloader:
+                    print(f"Step {step}:")
+                    print(batch)  # or print a sample of the batch data
+                    input()
+                    break
+
+class SaveAtEndOfEpochCallback(TrainerCallback):
     def on_epoch_end(self, args, state, control, **kwargs):
         control.should_save = True  # Force save at the end of the epoch
 
@@ -294,6 +317,7 @@ class Trainer:
 
         logging_steps = len(self.tokenized_dataset['train']) // self.config.BATCH_SIZE
 
+        n_steps_to_report = 10
         training_args = HF_TrainingArguments(
             output_dir=self.trained_model_output_dir,
             overwrite_output_dir=True,
@@ -301,9 +325,9 @@ class Trainer:
             logging_strategy='steps',
             evaluation_strategy='steps',
             save_strategy='steps',
-            save_steps=10,
-            eval_steps=10,
-            logging_steps=10,
+            save_steps=n_steps_to_report,
+            eval_steps=n_steps_to_report,
+            logging_steps=n_steps_to_report,
             learning_rate=5e-5,
             weight_decay=0.01,
             per_device_train_batch_size=self.config.BATCH_SIZE,
@@ -321,6 +345,7 @@ class Trainer:
             eval_dataset=self.tokenized_dataset['test'],
             data_collator=self.mlm_collator,
             tokenizer=self.tokenizer,
+            print_steps=1,
             callbacks=[SaveAtEndOfEpochCallback()]
         )
         hf_trainer.train(resume_from_checkpoint=self.model_folderpath)
