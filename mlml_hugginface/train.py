@@ -167,7 +167,9 @@ class Trainer:
             batched=True,
             #remove_columns=list(self.dataset['train'][0])
         )
+        print(f'>>> tokenized dataset: {self.tokenized_dataset}')
         print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
+        input()
 
         self.mlm_collator = CustomDataCollator(
             tokenizer=self.tokenizer,
