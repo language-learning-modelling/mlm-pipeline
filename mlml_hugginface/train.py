@@ -152,7 +152,7 @@ class Trainer:
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
-            remove_columns=list(self.dataset['train'][0])
+            #remove_columns=list(self.dataset['train'][0])
         )
         print(f'>>> tokenized dataset: {self.tokenized_dataset["train"][0]}')
 
