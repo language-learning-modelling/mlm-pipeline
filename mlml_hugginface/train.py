@@ -255,11 +255,8 @@ class Trainer:
                         except:
                             print(f"FAILED: {f}")
                         for instance_d in data_dict.values():
-                            for col_name in instance_d["text_metadata"].keys():
-                                print(col_name)
-                            exit()
-                        dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
-                        dataset_dict["text"].extend([instance_d["text"] for instance_d in data_dict.values()])
+                            dataset_dict["text"].append(instance_d["text"])
+                            dataset_dict["text_metadata"].append(instance_d["text_metadata"])
                     break
                 dataset = HF_Dataset.from_dict(dataset_dict)
                 dataset = dataset.train_test_split(
