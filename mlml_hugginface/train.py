@@ -65,10 +65,10 @@ class TrainerConfig:
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
 class CustomTrainer(Trainer):
-    def __init__(self, *args, **kwargs):
-        print_steps = kwargs.pop('print_steps', 100)  # Set default to 100 steps
-        super().__init__(*args, **kwargs)
-        self.add_callback(PrintTrainingDataCallback(print_steps))
+    # def __init__(self, *args, **kwargs):
+    #     print_steps = kwargs.pop('print_steps', 100)  # Set default to 100 steps
+    #     super().__init__(*args, **kwargs)
+    #     self.add_callback(PrintTrainingDataCallback(print_steps))
 
     def train(self, resume_from_checkpoint=None, **kwargs):
         if resume_from_checkpoint is not None:
@@ -88,6 +88,8 @@ class PrintTrainingDataCallback(TrainerCallback):
         self.print_steps = print_steps
 
     def on_step_end(self, args, state, control, **kwargs):
+        print("*"*100,"Training step ending","*"*100)
+        input()
         step = state.global_step
         if step % self.print_steps == 0:
             trainer = kwargs.get("trainer")
@@ -345,8 +347,7 @@ class Trainer:
             eval_dataset=self.tokenized_dataset['test'],
             data_collator=self.mlm_collator,
             tokenizer=self.tokenizer,
-            print_steps=1,
-            callbacks=[SaveAtEndOfEpochCallback()]
+            callbacks=[SaveAtEndOfEpochCallback(),PrintTrainingDataCallback(print_steps=1)]
         )
         hf_trainer.train(resume_from_checkpoint=self.model_folderpath)
 
