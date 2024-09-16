@@ -92,7 +92,6 @@ class PrintTrainingDataCallback(TrainerCallback):
         step = state.global_step
         print(kwargs.keys())
         print(state)
-        print(trainer)
         input()
         dataloader = kwargs.get("train_dataloader")
         for batch in dataloader:
