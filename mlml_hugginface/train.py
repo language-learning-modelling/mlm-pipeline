@@ -90,22 +90,16 @@ class PrintTrainingDataCallback(TrainerCallback):
     def on_step_end(self, args, state, control, **kwargs):
         print("*"*100,"Training step ending","*"*100)
         step = state.global_step
-        trainer = kwargs.get("trainer")
         print(kwargs.keys())
         print(state)
         print(trainer)
         input()
-        if trainer is not None:
-            # Access the dataloader
-            dataloader = trainer.get_train_dataloader()
-            
-            # Print a sample batch from the dataloader
-            # Note: This method will get the data without advancing the iterator
-            for batch in dataloader:
-                print(f"Step {step}:")
-                print(batch)  # or print a sample of the batch data
-                input()
-                break
+        dataloader = kwargs.get("train_dataloader")
+        for batch in dataloader:
+            print(f"Step {step}:")
+            print(batch)  # or print a sample of the batch data
+            input()
+            break
         print(step)
         input()
 
