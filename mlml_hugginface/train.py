@@ -122,6 +122,7 @@ class Trainer:
         if self.config.HF_CHECKPOINT:
             self.model_folderpath = self.config.HF_CHECKPOINT
             self.tokenizer_folderpath = self.config.HF_CHECKPOINT
+
         elif self.has_checkpoint_config:
             self.expected_checkpoints_folder = f"./models/{self.model_name}-finetuned-{self.dataset_name}/{self.run_hash}/{self.config.TRAINING_CHECKPOINT}"
             print(self.expected_checkpoints_folder);input()
@@ -147,6 +148,7 @@ class Trainer:
             self.model = self.get_lora_model(self.model)
 
         print(f'>>> tokenizing dataset...')
+        print(self.dataset['train'][0]);input()
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
