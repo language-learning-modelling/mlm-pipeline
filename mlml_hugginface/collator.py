@@ -1,3 +1,6 @@
+from transformers import (
+    DataCollatorForLanguageModeling,
+)
 class CustomDataCollator(DataCollatorForLanguageModeling):
     def __call__(self, features):
         # Separate the tokenized input and the metadata
