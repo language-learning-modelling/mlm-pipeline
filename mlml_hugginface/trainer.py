@@ -32,28 +32,11 @@ class CustomTrainer(Trainer):
     #     super().__init__(*args, **kwargs)
     #     self.add_callback(PrintTrainingDataCallback(print_steps))
 
-
-    #def print_start_end(self, func):
-    #    def wrapper(*args, **kwargs):
-    #        method_name = func.__name__
-
-    #        print(f"Starting {method_name}")
-
-    #        # Dynamically call the super method
-    #        if hasattr(super(type(self), self), method_name):
-    #            getattr(super(type(self), self), method_name)(*args, **kwargs)
-
-    #        # Call the actual method
-    #        result = func(self, *args, **kwargs)
-
-    #        print(f"Ending {method_name}")
-    #        input()
-    #        return result
-    #    return wrapper
     @print_start_end
     def __init__(self, *args, **kwargs):
         print(kwargs)
 
+    @print_start_end
     def train(self, resume_from_checkpoint=None, **kwargs):
         if resume_from_checkpoint is not None:
             print(f"Loading checkpoint from {resume_from_checkpoint}")
@@ -73,11 +56,13 @@ class CustomTrainer(Trainer):
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
 
     # On the start of the training loop
+    @print_start_end
     def on_train_begin(self):
         print("Custom training begin.")
         super().on_train_begin()
 
     # On the start of each epoch
+    @print_start_end
     def on_epoch_begin(self):
         print("Custom epoch begin.")
         super().on_epoch_begin()

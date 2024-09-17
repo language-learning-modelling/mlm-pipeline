@@ -65,23 +65,6 @@ class TrainerConfig:
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
 
-def print_start_end(func):
-    def wrapper(self, *args, **kwargs):
-        # Dynamically determine the method name
-        method_name = func.__name__
-
-        print(f"Starting {method_name}")
-
-        # Dynamically call the super method if it's not a static method or class method
-        if hasattr(super(type(self), self), method_name):
-            getattr(super(type(self), self), method_name)(*args, **kwargs)
-
-        # Call the actual method
-        result = func(self, *args, **kwargs)
-
-        print(f"Ending {method_name}")
-        return result
-    return wrapper
 
 class Trainer:
     def __init__(self, config: TrainerConfig):
@@ -324,8 +307,8 @@ class Trainer:
         hf_trainer = CustomTrainer(
             model=self.model,
             args=training_args,
-            train_dataset=self.tokenized_dataset['train'],
-            eval_dataset=self.tokenized_dataset['test'],
+            train_dataset=self.dataset['train'],
+            eval_dataset=self.tdataset['test'],
             data_collator=self.mlm_collator,
             tokenizer=self.tokenizer,
             callbacks=[SaveAtEndOfEpochCallback(),PrintTrainingDataCallback(print_steps=1)]
