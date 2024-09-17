@@ -303,6 +303,8 @@ class Trainer:
             load_best_model_at_end=True
         )
 
+        print(self.tokenized_dataset['train'])
+        input("training dataset")
         hf_trainer = CustomTrainer(
             model=self.model,
             args=training_args,
