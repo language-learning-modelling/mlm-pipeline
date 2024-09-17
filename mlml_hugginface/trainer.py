@@ -25,6 +25,12 @@ class CustomTrainer(Trainer):
             self.state.global_step = state_dict["global_step"] 
             print(state_dict)
             print(f"Resuming at global_step {self.state.global_step}")
+        dataloader = kwargs.get("train_dataloader")
+        for batch in dataloader:
+            print(f"Step {step}:")
+            print(batch)  # or print a sample of the batch data
+            input()
+            break
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
 
     # On the start of the training loop
