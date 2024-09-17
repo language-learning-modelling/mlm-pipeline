@@ -32,11 +32,9 @@ class CustomTrainer(Trainer):
     #     super().__init__(*args, **kwargs)
     #     self.add_callback(PrintTrainingDataCallback(print_steps))
 
-    @print_start_end
     def __init__(self, *args, **kwargs):
         print(kwargs)
 
-    @print_start_end
     def train(self, resume_from_checkpoint=None, **kwargs):
         if resume_from_checkpoint is not None:
             print(f"Loading checkpoint from {resume_from_checkpoint}")
@@ -56,7 +54,6 @@ class CustomTrainer(Trainer):
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
 
     # On the start of the training loop
-    @print_start_end
     def on_train_begin(self):
         print("Custom training begin.")
         super().on_train_begin()
