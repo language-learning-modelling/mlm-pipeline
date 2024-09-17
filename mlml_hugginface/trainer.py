@@ -99,7 +99,7 @@ class CustomTrainer(Trainer):
                     # e.g., batch["metadata"] = [example["metadata"] for example in raw data]
                     yield batch
 
-        print("*"*100, "getting the data loader" ,"*"100)
+        print("*"*100, "getting the data loader" ,"*"*100)
         print(data_loader.dataset)
         input()
         # Return the custom DataLoader
