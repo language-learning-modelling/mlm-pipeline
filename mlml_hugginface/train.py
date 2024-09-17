@@ -27,7 +27,7 @@ from .collator import CustomDataCollator
 
 # Define the enum for training strategies
 class TrainingStrategy(Enum):
-    FULL_LLM_TOKENIZE = "FULL+LLM-TOKENIZE"
+    FULL_LLM_TOKENIZE   = "FULL+LLM-TOKENIZE"
     RESUME_LLM_TOKENIZE = "RESUME+LLM-TOKENIZE"
     FULL_HUMAN_TOKENIZE = "FULL+HUMAN-TOKENIZE"
 
