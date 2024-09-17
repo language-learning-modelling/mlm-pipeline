@@ -35,7 +35,7 @@ class CustomTrainer(Trainer):
     def __init__(self, *args, **kwargs):
         print("starting init")
         print(kwargs)
-        print("finishing init");input9)
+        print("finishing init");input()
         super().__init__(*args, **kwargs)
 
     def train(self, resume_from_checkpoint=None, **kwargs):
