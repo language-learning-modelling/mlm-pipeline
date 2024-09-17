@@ -13,6 +13,9 @@ class CustomTrainer(Trainer):
     #     self.add_callback(PrintTrainingDataCallback(print_steps))
 
     def __init__(self, *args, **kwargs):
+        print("starting init");input()
+        print(kwargs)
+        print("init");input()
         super().__init__(*args, **kwargs)
 
     # Training loop
