@@ -6,16 +6,39 @@ from transformers import (
 )
 import torch
 
+def print_start_end(func):
+    def wrapper(*args, **kwargs):
+        print("Starting function")
+        result = func(*args, **kwargs)
+        print("Ending function")
+        return result
+    return wrapper
+
 class CustomTrainer(Trainer):
     # def __init__(self, *args, **kwargs):
     #     print_steps = kwargs.pop('print_steps', 100)  # Set default to 100 steps
     #     super().__init__(*args, **kwargs)
     #     self.add_callback(PrintTrainingDataCallback(print_steps))
+    def print_start_end(self, func):
+        def wrapper(*args, **kwargs):
+            method_name = func.__name__
+
+            print(f"Starting {method_name}")
+
+            # Dynamically call the super method
+            if hasattr(super(type(self), self), method_name):
+                getattr(super(type(self), self), method_name)(*args, **kwargs)
+
+            # Call the actual method
+            result = func(self, *args, **kwargs)
+
+            print(f"Ending {method_name}")
+            input()
+            return result
+        return wrapper
 
     def __init__(self, *args, **kwargs):
-        print("starting init");input()
         print(kwargs)
-        print("init");input()
         super().__init__(*args, **kwargs)
 
     # Training loop
