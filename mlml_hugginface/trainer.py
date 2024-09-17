@@ -21,8 +21,9 @@ class CustomTrainer(Trainer):
             if os.path.isdir(resume_from_checkpoint):
                 trainer_state_fp = os.path.join(resume_from_checkpoint, "trainer_state.json")
                 with open(trainer_state_fp) as inpf:
-                    self.state = json.load(inpf)
-            print(f"{self.state}")
+                    state_dict = json.load(inpf)
+            self.state.global_step = state_dict["global_step"] 
+            print(state_dict)
             print(f"Resuming at global_step {self.state.global_step}")
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
 
