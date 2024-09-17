@@ -10,6 +10,10 @@ class CustomTrainer(Trainer):
     #     super().__init__(*args, **kwargs)
     #     self.add_callback(PrintTrainingDataCallback(print_steps))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    # Training loop
     def train(self, resume_from_checkpoint=None, **kwargs):
         if resume_from_checkpoint is not None:
             print(f"Loading checkpoint from {resume_from_checkpoint}")
@@ -21,6 +25,61 @@ class CustomTrainer(Trainer):
             print(state_dict)
             print(f"Resuming at global_step {self.state.global_step}")
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
+
+    # On the start of the training loop
+    def on_train_begin(self):
+        print("Custom training begin.")
+        super().on_train_begin()
+
+    # On the start of each epoch
+    def on_epoch_begin(self):
+        print("Custom epoch begin.")
+        super().on_epoch_begin()
+
+    # Training step
+    def training_step(self, model, inputs):
+        print("Custom training step started.")
+        return super().training_step(model, inputs)
+
+    # End of training step
+    def training_step_end(self, loss):
+        print("Custom training step ended.")
+        return super().training_step_end(loss)
+
+    # On the end of each epoch
+    def on_epoch_end(self):
+        print("Custom epoch end.")
+        super().on_epoch_end()
+
+    # On the end of the training loop
+    def on_train_end(self):
+        print("Custom training end.")
+        super().on_train_end()
+
+    # Evaluation loop start
+    def on_evaluate(self):
+        print("Custom evaluation begin.")
+        super().on_evaluate()
+
+    # Evaluation step
+    def evaluation_step(self, model, inputs):
+        print("Custom evaluation step started.")
+        return super().evaluation_step(model, inputs)
+
+    # End of evaluation step
+    def evaluation_step_end(self, outputs):
+        print("Custom evaluation step ended.")
+        return super().evaluation_step_end(outputs)
+
+    # Evaluation loop end
+    def on_evaluate_end(self):
+        print("Custom evaluation end.")
+        super().on_evaluate_end()
+
+    # Data collation (custom logic for batch processing)
+    def data_collator(self, features):
+        print("Custom data collator called.")
+        return super().data_collator(features)
 
 class PrintTrainingDataCallback(TrainerCallback):
     def __init__(self, print_steps):
