@@ -50,6 +50,8 @@ class CustomTrainer(Trainer):
             print(state_dict)
             print(f"Resuming at global_step {self.state.global_step}")
         print(kwargs)
+        print(args)
+        print(dir(super()))
         print(kwargs.keys())
         input()
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
