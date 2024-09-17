@@ -25,6 +25,8 @@ class CustomTrainer(Trainer):
             self.state.global_step = state_dict["global_step"] 
             print(state_dict)
             print(f"Resuming at global_step {self.state.global_step}")
+        print(kwargs)
+        print(kwargs.keys())
         dataloader = kwargs.get("train_dataloader")
         for batch in dataloader:
             print(f"Step {step}:")
