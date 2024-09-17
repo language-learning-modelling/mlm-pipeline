@@ -38,7 +38,6 @@ class CustomTrainer(Trainer):
         print("finishing init");input9)
         super().__init__(*args, **kwargs)
 
-    # Training loop
     def train(self, resume_from_checkpoint=None, **kwargs):
         if resume_from_checkpoint is not None:
             print(f"Loading checkpoint from {resume_from_checkpoint}")
