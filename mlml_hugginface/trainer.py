@@ -22,7 +22,7 @@ class CustomTrainer(Trainer):
                 trainer_state_fp = os.path.join(resume_from_checkpoint, "trainer_state.json")
                 with open(trainer_state_fp) as inpf:
                     self.state = json.load(inpf)
-            print(state_dict)
+            print(f"{self.state}")
             print(f"Resuming at global_step {self.state.global_step}")
         super().train(resume_from_checkpoint=resume_from_checkpoint, **kwargs)
 
