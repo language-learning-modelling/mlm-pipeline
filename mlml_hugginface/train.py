@@ -302,13 +302,13 @@ class Trainer:
             load_best_model_at_end=True
         )
 
-        print(self.tokenized_dataset['train'])
+        print(self.dataset['train'])
         input("training dataset")
         hf_trainer = CustomTrainer(
             model=self.model,
             args=training_args,
             train_dataset=self.dataset['train'],
-            eval_dataset=self.tdataset['test'],
+            eval_dataset=self.dataset['test'],
             data_collator=self.mlm_collator,
             tokenizer=self.tokenizer,
             callbacks=[SaveAtEndOfEpochCallback(),PrintTrainingDataCallback(print_steps=1)]
