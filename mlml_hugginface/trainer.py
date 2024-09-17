@@ -4,6 +4,8 @@ from transformers import (
     Trainer,
     TrainerCallback,
 )
+import torch
+
 class CustomTrainer(Trainer):
     # def __init__(self, *args, **kwargs):
     #     print_steps = kwargs.pop('print_steps', 100)  # Set default to 100 steps
@@ -89,6 +91,31 @@ class CustomTrainer(Trainer):
     def data_collator(self, features):
         print("Custom data collator called.")
         return super().data_collator(features)
+
+    def get_train_dataloader(self):
+        # Override the standard DataLoader call
+        data_loader = super().get_train_dataloader()
+
+        # Wrap the DataLoader's iterable to include metadata
+        class DataLoaderWithMetadata(torch.utils.data.DataLoader):
+            def __iter__(self):
+                for batch in super().__iter__():
+                    # Add your metadata handling here
+                    # e.g., batch["metadata"] = [example["metadata"] for example in raw data]
+                    yield batch
+
+        print("*"*100, "getting the data loader" ,"*"100)
+        print(data_loader.dataset)
+        input()
+        # Return the custom DataLoader
+        return DataLoaderWithMetadata(
+            data_loader.dataset,
+            batch_size=data_loader.batch_size,
+            collate_fn=data_loader.collate_fn,
+            shuffle=data_loader.shuffle,
+            sampler=data_loader.sampler,
+            drop_last=data_loader.drop_last,
+        )
 
 class PrintTrainingDataCallback(TrainerCallback):
     def __init__(self, print_steps):
