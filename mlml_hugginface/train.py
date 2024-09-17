@@ -65,6 +65,23 @@ class TrainerConfig:
             raise ValueError(f'Invalid training strategy type: {self.TRAINING_STRATEGY}')
 
 
+def print_start_end(func):
+    def wrapper(self, *args, **kwargs):
+        # Dynamically determine the method name
+        method_name = func.__name__
+
+        print(f"Starting {method_name}")
+
+        # Dynamically call the super method if it's not a static method or class method
+        if hasattr(super(type(self), self), method_name):
+            getattr(super(type(self), self), method_name)(*args, **kwargs)
+
+        # Call the actual method
+        result = func(self, *args, **kwargs)
+
+        print(f"Ending {method_name}")
+        return result
+    return wrapper
 
 class Trainer:
     def __init__(self, config: TrainerConfig):
@@ -108,7 +125,6 @@ class Trainer:
             self.model = self.get_lora_model(self.model)
 
         print(f'>>> tokenizing dataset...')
-        print(self.dataset['train'][0]);input()
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
