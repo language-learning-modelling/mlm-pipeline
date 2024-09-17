@@ -19,12 +19,13 @@ def print_start_end(func):
         print(self)
         input()
 
-        # Dynamically call the super method if it's not a static method or class method
-        if hasattr(super(type(self), self), method_name):
-            getattr(super(type(self), self), method_name)(*args, **kwargs)
 
         # Call the actual method
         result = func(self, *args, **kwargs)
+
+        # Dynamically call the super method if it's not a static method or class method
+        if hasattr(super(type(self), self), method_name):
+            getattr(super(type(self), self), method_name)(*args, **kwargs)
 
         print(f"Ending {method_name}")
         input()
