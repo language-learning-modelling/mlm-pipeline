@@ -108,6 +108,7 @@ class Trainer:
             self.model = self.get_lora_model(self.model)
 
         print(f'>>> tokenizing dataset...')
+        print(self.dataset['train'][0]);input()
         self.tokenized_dataset = self.dataset.map(
             self.tokenize_function,
             batched=True,
@@ -299,16 +300,17 @@ class Trainer:
             push_to_hub=False,
             fp16=False,
             save_total_limit=3,
-            load_best_model_at_end=True
+            load_best_model_at_end=True,
+            remove_unused_columns=False
         )
 
-        print(self.dataset['train'])
+        print(self.tokenized_dataset['train'])
         input("training dataset")
         hf_trainer = CustomTrainer(
             model=self.model,
             args=training_args,
-            train_dataset=self.dataset['train'],
-            eval_dataset=self.dataset['test'],
+            train_dataset=self.tokenized_dataset['train'],
+            eval_dataset=self.tokenized_dataset['test'],
             data_collator=self.mlm_collator,
             tokenizer=self.tokenizer,
             callbacks=[SaveAtEndOfEpochCallback(),PrintTrainingDataCallback(print_steps=1)]
