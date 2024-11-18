@@ -5,6 +5,43 @@ from torch.nn.functional import softmax
 import time
 import collections
 
+from transformers import AutoModelForMaskedLM, AutoTokenizer
+import os
+
+class ModelLoader:
+    def __init__(self, model_checkpoint):
+        self.model_checkpoint = model_checkpoint
+        self.model = None
+        self.tokenizer = None
+
+    def load_checkpoint(self):
+        # Check if both model and tokenizer files are in the same directory
+        if self._has_model_and_tokenizer_files(self.model_checkpoint):
+            # Case 1: Load directly from the checkpoint directory
+            self.model = AutoModelForMaskedLM.from_pretrained(self.model_checkpoint)
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_checkpoint)
+        else:
+            # Case 2: Check for model/ and tokenizer/ subdirectories
+            model_path = os.path.join(self.model_checkpoint, 'model')
+            tokenizer_path = os.path.join(self.model_checkpoint, 'tokenizer')
+            
+            if os.path.exists(model_path) and os.path.exists(tokenizer_path):
+                # Load model and tokenizer from subdirectories
+                self.model = AutoModelForMaskedLM.from_pretrained(model_path)
+                self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+            else:
+                raise ValueError(f"Checkpoint at {self.model_checkpoint} is not properly structured.")
+
+    def _has_model_and_tokenizer_files(self, directory):
+        # Check if directory contains files necessary for both model and tokenizer
+        model_files = ['generation_config.json', 'config.json', 'model.safetensors']  # Common model files
+        tokenizer_files = ['vocab.txt', 'tokenizer_config.json', 'tokenizer.json', 'special_tokens_map.json']  # Common tokenizer files
+
+        model_files_present = all(os.path.isfile(os.path.join(directory, f)) for f in model_files)
+        tokenizer_files_present = all(os.path.isfile(os.path.join(directory, f)) for f in tokenizer_files)
+
+        return model_files_present and tokenizer_files_present
+
 class Predictor(object):
     '''
      Predicts a list of masked senteces
@@ -15,13 +52,11 @@ class Predictor(object):
         self.big_count = 0
         self.use_cuda = torch.cuda.is_available()
         self.device = torch.device("cuda" if self.use_cuda else "cpu")
-        self.model = AutoModelForMaskedLM.from_pretrained(
-         self.config.MODEL_CHECKPOINT
-        )
+        self.model_loader = ModelLoader(self.config.MODEL_CHECKPOINT)
+        self.model_loader.load_checkpoint()
+        self.model = self.model_loader.model 
         self.model.to(self.device)
-        self.tokenizer = AutoTokenizer.from_pretrained(
-         self.config.MODEL_CHECKPOINT
-        )
+        self.tokenizer = self.model_loader.tokenizer 
         self.vocab_size = len(self.tokenizer.vocab)
 
         self.masked_sent_tpl_lst_per_text = self.load_texts() 
